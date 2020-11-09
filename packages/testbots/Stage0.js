@@ -1,10 +1,10 @@
 function main(args) {
     let res = []
-    switch(args.action) {
+    switch(args.event) {
         case "idle":
             res = [{
                 "action":"turn_turret_right",
-                "amount": 45
+                "amount": 5
             }]
             break;
         case "hit":

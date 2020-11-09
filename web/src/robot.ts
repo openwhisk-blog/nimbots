@@ -14,7 +14,6 @@ interface Event {
   action: string
   msg: string
   progress: number
-  event_id: number
   amount: number
 }
 
@@ -55,7 +54,10 @@ export class Robot {
 
   events: Event[] = []
   bullets: Bullet[] = []
-  status: Status
+  status: Status = {
+    wall_collide: false,
+    is_hit: false
+  }
 
   is_hit = false
   is_yell = false
@@ -114,7 +116,7 @@ export class Robot {
   }
 
   receive(event: Event) {
-    console.log(`receive ${event}`)
+    console.log("receive",  event)
     if (event.action == "shoot") {
       if (this.bullets.length >= MAX_BULLET || this.bullet_ts < BULLET_INTERVAL) {
         return
@@ -132,13 +134,11 @@ export class Robot {
     if (event.action == "turn_turret_left")
       for (let ev of this.events)
         if (ev.action == "turn_turret_left")
-          //@send-callback event["event_id"]
           return
 
     if (event.action == "turn_turret_right")
       for (let ev of this.events)
         if (ev.action == "turn_turret_right")
-          //@send-callback event["event_id"]
           return
 
     if (event.action == "yell")
@@ -148,9 +148,8 @@ export class Robot {
       }
 
     event.progress = 0
-    let event_id = event.event_id
-    console.log(`got event ${event_id}, ${event.action}`)
-    this.events[event_id] = event
+    console.log("queuing receive", event)
+    this.events.push(event)
   }
 
   async send(msg: object): Promise<boolean> {
@@ -158,11 +157,21 @@ export class Robot {
       "method": 'POST',
       "headers": { 'Content-Type': 'application/json' },
       "body": JSON.stringify(msg)
-    }).then(response => response.json()
-    ).then((data) => {
-      data.event_id = this.event_counter++
-      console.log(data)
-      this.receive(data)
+    }).then(response => response.text()
+    ).then((json) => {
+      console.log(json)
+      let data: Event | Array<Event> = JSON.parse(json)
+      let queue: Event[]
+      if (data instanceof Event) {
+        queue = [data as Event]
+      } else if (Array.isArray(data)) {
+        queue = data
+      } else {
+        return false
+      }
+      for (let event of queue) {
+        this.receive(event)
+      }
       return true
     }).catch((err) => {
       alert("Cannot contact server!")
@@ -171,17 +180,17 @@ export class Robot {
   }
 
   get_enemy_robots(): Robot[] {
-    let enemy: Robot[] = []
+    let enemies: Robot[] = []
     for (let r of Battle.robots)
       if (r.id != this.id)
-        enemy.push(r)
-    return enemy
+        enemies.push(r)
+    return enemies
   }
 
   send_enemy_spot() {
     console.log("send-enemy-spot")
     this.send({
-      "action": "enemy-spot",
+      "event": "enemy-spot",
       "me": this.me,
       "enemy-spot": this.enemy_spot,
       "status": this.status
@@ -191,7 +200,7 @@ export class Robot {
   send_interruption() {
     console.log("send-interruption")
     this.send({
-      "action": "interruption",
+      "event": "interruption",
       "me": this.me,
       //"enemy-robots": @get-enempy-robots!,
       "status": this.status
@@ -281,6 +290,8 @@ export class Robot {
       hp: this.hp
     }
 
+    //console.log(this.me)
+
     let is_turning_turret = false
 
     if (this.bullet_ts == Number.MAX_VALUE)
@@ -304,9 +315,10 @@ export class Robot {
     }
 
     let has_sequential_event = false
-    let i = -1
+    let newEvents = []
+    //console.log(this.events)
     for (let event of this.events) {
-      ++i
+      //console.log("inspecting", event)
       if (SEQUENTIAL_EVENTS.indexOf(event.action) != -1) {
         if (has_sequential_event) {
           continue
@@ -314,72 +326,70 @@ export class Robot {
         has_sequential_event = true
       }
 
-      console.log(`events[${event.event_id}] = {action=${event.action},progress=${event.progress}}`)
+      //console.log(`events[${event.event_id}] = {action=${event.action},progress=${event.progress}}`)
+      if (event && event.amount > event.progress) {
+        newEvents.push(event)
+        //console.log("reading", event)
+        switch (event.action) {
+          case "move_forwards":
+            event.progress++
+            this.move(1)
+            if (this.status.wall_collide) {
+              this.action_to_collide = 1 //#forward
+              newEvents = []
+              this.send_interruption()
+              break
+            }
 
-      if (event.amount <= event.progress) {
-        delete this.events[i]
-      } else switch (event.action) {
-        case "move_forwards":
-          event.progress++
-          this.move(1)
-          if (this.status.wall_collide) {
-            this.action_to_collide = 1 //#forward
-            this.events = []
-            this.send_interruption()
-            break
-          }
+          case "move_backwards":
+            event.progress--
+            this.move(-1)
+            if (this.status.wall_collide) {
+              this.action_to_collide = -1 //#backward
+              newEvents = []
+              this.send_interruption()
+              break
+            }
 
-        case "move_backwards":
-          event.progress--
-          this.move(-1)
-          if (this.status.wall_collide) {
-            this.action_to_collide = -1 //#backward
-            this.events = []
-            this.send_interruption()
-            break
-          }
+          case "move_opposide":
+            event.progress++
+            this.move(-this.action_to_collide)
+            if (this.status.wall_collide) {
+              this.action_to_collide = -this.action_to_collide
+              newEvents = []
+              this.send_interruption()
+              break
+            }
 
+          case "turn_left":
+            event.progress++
+            this.turn(-1)
 
-        case "move_opposide":
-          event.progress++
-          this.move(-this.action_to_collide)
-          if (this.status.wall_collide) {
-            this.action_to_collide = -this.action_to_collide
-            this.events = []
-            this.send_interruption()
-            break
-          }
+          case "turn_right":
+            event.progress++
+            this.turn(1)
 
-        case "turn_left":
-          event.progress++
-          this.turn(-1)
+          case "turn_turret_left":
+            if (is_turning_turret)
+              continue
+            event.progress++
+            this.turn_turret(-1)
+            is_turning_turret = true
 
-        case "turn_right":
-          event.progress++
-          this.turn(1)
-
-        case "turn_turret_left":
-          if (is_turning_turret)
-            continue
-          event.progress++
-          this.turn_turret(-1)
-          is_turning_turret = true
-
-        case "turn_turret_right":
-          if (is_turning_turret)
-            continue
-          event["progress"]++
-          this.turn_turret(1)
-          is_turning_turret = true
+          case "turn_turret_right":
+            if (is_turning_turret)
+              continue
+            event["progress"]++
+            this.turn_turret(1)
+            is_turning_turret = true
+        }
       }
     }
-  }
-
-  tick() {
-    if(this.events.length == 0) 
+    this.events = newEvents
+    // notify idle
+    if (this.events.length == 0)
       this.send({
         "event": "idle"
       })
-    this.update()
   }
 }

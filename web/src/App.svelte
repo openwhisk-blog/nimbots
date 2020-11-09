@@ -12,8 +12,13 @@
 			[url, url])
 		window["battle"] = battle
 	})
-	function tick() {
-		battle.tick()
+	function single() {
+		battle.single()
+	}
+	function toggle() {
+		Battle.waiting = !Battle.waiting
+		if(!Battle.waiting)
+			battle.start()
 	}
 </script>
 <style>
@@ -53,10 +58,16 @@
 		</div>
 		<div class="row">
 		  <div class="column column-20">
-			  <button id="step"  on:click={tick}>One Step</button>
+			  <button id="step"  on:click={single}>One Step</button>
 		  </div>
 		  <div class="column column-20">
-			  <button id="fight">Fight!</button>
+			  <button id="fight" on:click={toggle}>
+				{#if Battle.waiting}
+				  Fight!
+				{:else}
+				  Pause!
+				{/if}
+			  </button>
 		  </div>
 		</div>
 	  </section>
