@@ -19,7 +19,7 @@ function main(args) {
             break
         case "hit":
             res.push({
-                "yell": "Ooops",
+                "yell": "Ooops!",
                 "move_backwards": 100,
                 "shoot": true
             })

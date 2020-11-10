@@ -1,23 +1,17 @@
 function main(args) {
     let res = []
-    switch(args.action) {
+    switch(args.event) {
         case "idle":
-            res = [{
-                "action":"turn_turret_right",
-                "amount": 45
-            }]
+            res.push({"turn_turret_right": 45})
             break;
         case "hit":
-            res = [{
-                "action": "yell",
-                "msg": "ooops!"
-            }]
+            res.push({"yell": "ooops!"})
             break
         case "enemy-spot":
-            res = [{"action": "shoot"}]
+            res.push({"shoot": true})
             break
         default:
-            console.log(arg)        
+            console.log(args)        
     }
     return { "body": res}
 }
