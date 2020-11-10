@@ -1,3 +1,4 @@
+import { blank_object } from 'svelte/internal'
 import { Robot, HP } from './robot'
 import { AssetsLoader, degrees2radians } from './util'
 
@@ -39,6 +40,11 @@ export class Battle {
   static robots: Robot[] = []
   static explosions: Explosion[] = []
   static waiting = true
+  static tracing = true
+  static speed = 50
+
+  static end_battle: (id: number) => void
+  static suspend_battle: (msg: string) => void
 
   ctx: CanvasRenderingContext2D
   width: number
@@ -46,17 +52,23 @@ export class Battle {
 
   constructor(ctx: CanvasRenderingContext2D,
     width: number, height: number,
-    urls: string[]) {
+    end_battle: (id: number) => void,
+    suspend_battle: (string) => void) {
     this.ctx = ctx
     this.width = width
     this.height = height
+    Battle.end_battle = end_battle
+    Battle.suspend_battle = suspend_battle
     Robot.battlefield_height = height
     Robot.battlefield_width = width
+  }
 
-    let robotAppearPosY = height / 2
-    let robotAppearPosXInc = width / 3
+  init(urls: string[]) {
+    let robotAppearPosY = this.height / 2
+    let robotAppearPosXInc = this.width / 3
     let robotAppearPosX = robotAppearPosXInc
     let id = 0
+    Battle.robots = []
     for (let url of urls) {
       let r = new Robot(robotAppearPosX, robotAppearPosY, url)
       r.id = id++
@@ -64,10 +76,9 @@ export class Battle {
       // next appear position
       robotAppearPosX += robotAppearPosXInc
       if (id >= 2) {
-        robotAppearPosX = Math.random() * (width - 100 + 20)
+        robotAppearPosX = Math.random() * (this.width - 100 + 20)
       }
     }
-
     Assets.loadAll(() => { this.draw() })
   }
 
@@ -144,28 +155,34 @@ export class Battle {
 
   currRobots(): Robot[] { return Battle.robots }
 
-  update() {
+  loop() {
     for (let robot of Battle.robots) {
       robot.update()
     }
-  }
-
-  single() {
-    this.update()
+    // check battle status
+    if(Battle.explosions.length == 0 && Battle.robots.length <= 1) {
+      Battle.waiting = true
+      if(Battle.robots.length ==0)
+        Battle.end_battle(-1)
+      else
+        Battle.end_battle(Battle.robots[0].id)
+    }
     this.draw()
-  }
-
-  loop() {
-    this.single() 
+    // iterate
     if(!Battle.waiting)
-      setTimeout(() => this.loop(), 100)
+      setTimeout(() => this.loop(), Battle.speed)
   }
 
   start() {
     Battle.waiting = false
+    Battle.tracing = false
     this.loop()
   }
 
-  
+  trace() {
+    Battle.waiting = false
+    Battle.tracing = true
+    this.loop()
+  }
 }
 

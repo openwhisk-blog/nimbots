@@ -11,10 +11,19 @@ const SEQUENTIAL_EVENTS = ["move_forwards", "move_backwards", "turn_left", "turn
 //const PARALLEL_EVENTS = ["shoot", "turn_turret_left", "turn_turret_right", "turn_radar_left", "turn_radar_right"]
 
 interface Event {
-  action: string
-  msg: string
-  progress: number
-  amount: number
+  action?: string
+  msg?: string
+  progress?: number
+  amount?: number
+  yell?: string
+  shoot?: boolean
+  turn_left?: number
+  turn_right?: number
+  move_forwards?: number
+  move_backwrds?: number
+  move_opposide?: number
+  turn_turret_left?: number
+  turn_turret_right?: number
 }
 
 interface Status {
@@ -159,22 +168,20 @@ export class Robot {
       "body": JSON.stringify(msg)
     }).then(response => response.text()
     ).then((json) => {
-      console.log(json)
-      let data: Event | Array<Event> = JSON.parse(json)
-      let queue: Event[]
-      if (data instanceof Event) {
-        queue = [data as Event]
-      } else if (Array.isArray(data)) {
-        queue = data
-      } else {
-        return false
-      }
-      for (let event of queue) {
+      //console.log(json)      
+      for (let event of this.decode(json)) {
         this.receive(event)
+      }
+      // stop after this sendrec
+      if(Battle.tracing) {
+        Battle.waiting = true
+        Battle.suspend_battle("Suspended by request.")
       }
       return true
     }).catch((err) => {
-      alert("Cannot contact server!")
+      Battle.waiting = true
+      Battle.suspend_battle("Suspended by server error.")
+      console.log("Cannot contact server!")
       return false
     })
   }
@@ -391,5 +398,94 @@ export class Robot {
       this.send({
         "event": "idle"
       })
+  }
+
+  decode(json: string): Event[] {
+    let data: Event | Array<Event> = JSON.parse(json)
+    let events: Event[]
+    let res: Event[] = []
+    if (data instanceof Event) {
+      events = [data as Event]
+    } else if (Array.isArray(data)) {
+      events = data
+    } else {
+      events = []
+    }
+    // expand commands
+    for(let event of events) {
+      // it is an action
+      if("action" in event) {
+        res.push(event)
+        continue
+      }
+      // short form
+      if("yell" in event) {
+        res.push({
+          "action": "yell",
+          "msg": event["yell"]
+        })
+      }
+      if("shoot" in event) {
+        if(event.shoot)
+          res.push({"action": "shoot"})
+      }
+      // left or right but not both
+      if("turn_turret_right" in event) {
+        res.push({
+          "action":"turn_turret_right",
+          "amount": event["turn_turret_right"]
+        })
+      } else if("turn_turret_left" in event) {
+        res.push({
+          "action":"turn_turret_left",
+          "amount": event["turn_turret_left"]
+        })
+      }
+      // sequential actions
+      if("move_opposide" in event) {
+          res.push({
+            "action":"move_opposide",
+            "amount": event["mode_opposide"]
+          })
+        continue
+      }
+      if("move_forwards" in event) {
+        res.push({
+          "action": "move_forwards",
+          "amount": event["move_forwards"]
+        })
+        continue
+      }
+      if("move_backwards" in event) {
+        res.push({
+          "action": "move_backwards",
+          "amount": event["move_backwards"]
+        })
+        continue
+      }
+      if("move_backwards" in event) {
+        res.push({
+          "action": "move_backwards",
+          "amount": event["move_backwards"]
+        })
+        continue
+      }
+      if("turn_left" in event) {
+        res.push({
+          "action": "turn_left",
+          "amount": event["turn_left"]
+        })
+        continue
+      }
+      if("turn_right" in event) {
+        res.push({
+          "action": "turn_right",
+          "amount": event["turn_right"]
+        })
+        continue
+      }
+    }
+    return res
+
   }
 }

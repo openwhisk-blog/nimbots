@@ -1,23 +1,24 @@
 function main(args) {
-    let res = "please specify an event"
-    switch(args.action) {
+    let res = []
+    console.log(args)
+    switch(args.event) {
         case "idle":
-            res = [
-              {"turn_right": 90},
-              {"turn_turret_left": 10},
-              {"turn_right": 90}
-            ]
+            res.push({
+                "action":"turn_turret_right",
+                "amount": 45
+            })
             break;
-        case "wallCollide":
-            res = [
-                {"move_opposide": 10},
-                {"turn_right": 90}
-            ]
-        case "enemySpot":
-            res = {"shoot": true}
+        case "hit":
+            res.push({
+                "action": "yell",
+                "msg": "ooops!"
+            })
+            break
+        case "enemy-spot":
+            res.push({"action": "shoot"})
             break
         default:
-            console.log(args.on)     
+            console.log(args.on)
     }
     return { "body": res}
 }
