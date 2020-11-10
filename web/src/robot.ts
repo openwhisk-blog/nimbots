@@ -1,5 +1,6 @@
 import { degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
 import { Battle } from './battle'
+import { is_function } from 'svelte/internal'
 
 export const HP = 20
 const BULLET_SPEED = 3
@@ -24,6 +25,7 @@ interface Event {
   move_opposide?: number
   turn_turret_left?: number
   turn_turret_right?: number
+  data?: any
 }
 
 interface Status {
@@ -53,6 +55,7 @@ export class Robot {
   static battlefield_height: number = 0
 
   me: Info
+  data: any = undefined
   id: number = 0
   hp: number = HP
 
@@ -125,7 +128,7 @@ export class Robot {
   }
 
   receive(event: Event) {
-    console.log("receive",  event)
+    console.log("receive", event)
     if (event.action == "shoot") {
       if (this.bullets.length >= MAX_BULLET || this.bullet_ts < BULLET_INTERVAL) {
         return
@@ -150,6 +153,10 @@ export class Robot {
         if (ev.action == "turn_turret_right")
           return
 
+    if (event.action == "data") {
+      this.data = event.data
+    }
+
     if (event.action == "yell")
       if (this.yell_ts == 0) {
         this.yell(event.msg)
@@ -173,7 +180,7 @@ export class Robot {
         this.receive(event)
       }
       // stop after this sendrec
-      if(Battle.tracing) {
+      if (Battle.tracing) {
         Battle.waiting = true
         Battle.suspend_battle("Suspended by request.")
       }
@@ -194,24 +201,26 @@ export class Robot {
     return enemies
   }
 
-  send_enemy_spot() {
-    console.log("send-enemy-spot")
+  send_event(event) {
     this.send({
-      "event": "enemy-spot",
+      "event": event,
       "me": this.me,
       "enemy-spot": this.enemy_spot,
-      "status": this.status
+      "status": this.status,
+      "data": this.data
     })
   }
 
+  send_enemy_spot() {
+    this.send_event("enemy-spot")
+  }
+
   send_interruption() {
-    console.log("send-interruption")
-    this.send({
-      "event": "interruption",
-      "me": this.me,
-      //"enemy-robots": @get-enempy-robots!,
-      "status": this.status
-    })
+    if(this.status.wall_collide)
+      this.send_event("wall-collide")
+    else if(this.status.wall_collide)
+      this.send_event("hit")
+    else console.log("unknown interruption!")
   }
 
   check_enemy_spot() {
@@ -298,9 +307,7 @@ export class Robot {
     }
 
     //console.log(this.me)
-
     let is_turning_turret = false
-
     if (this.bullet_ts == Number.MAX_VALUE)
       this.bullet_ts = 0
     else
@@ -334,7 +341,7 @@ export class Robot {
       }
 
       //console.log(`events[${event.event_id}] = {action=${event.action},progress=${event.progress}}`)
-      if (event && event.amount > event.progress) {
+      if(event && event.amount > event.progress) {
         newEvents.push(event)
         //console.log("reading", event)
         switch (event.action) {
@@ -395,9 +402,7 @@ export class Robot {
     this.events = newEvents
     // notify idle
     if (this.events.length == 0)
-      this.send({
-        "event": "idle"
-      })
+      this.send_event("idle")
   }
 
   decode(json: string): Event[] {
@@ -412,72 +417,78 @@ export class Robot {
       events = []
     }
     // expand commands
-    for(let event of events) {
+    for (let event of events) {
       // it is an action
-      if("action" in event) {
+      if ("action" in event) {
         res.push(event)
         continue
       }
       // short form
-      if("yell" in event) {
+      if ("state" in event) {
+        res.push({
+          "action": "state",
+          "state": event["state"]
+        })
+      }
+      if ("yell" in event) {
         res.push({
           "action": "yell",
           "msg": event["yell"]
         })
       }
-      if("shoot" in event) {
-        if(event.shoot)
-          res.push({"action": "shoot"})
+      if ("shoot" in event) {
+        if (event.shoot)
+          res.push({ "action": "shoot" })
       }
       // left or right but not both
-      if("turn_turret_right" in event) {
+      if ("turn_turret_right" in event) {
         res.push({
-          "action":"turn_turret_right",
+          "action": "turn_turret_right",
           "amount": event["turn_turret_right"]
         })
-      } else if("turn_turret_left" in event) {
+      } else if ("turn_turret_left" in event) {
         res.push({
-          "action":"turn_turret_left",
+          "action": "turn_turret_left",
           "amount": event["turn_turret_left"]
         })
       }
       // sequential actions
-      if("move_opposide" in event) {
-          res.push({
-            "action":"move_opposide",
-            "amount": event["mode_opposide"]
-          })
+      if ("move_opposide" in event) {
+        res.push({
+          "action": "move_opposide",
+          "amount": event["mode_opposide"]
+        })
         continue
       }
-      if("move_forwards" in event) {
+      if ("move_forwards" in event) {
         res.push({
           "action": "move_forwards",
           "amount": event["move_forwards"]
         })
         continue
       }
-      if("move_backwards" in event) {
+      if ("move_backwards" in event) {
         res.push({
           "action": "move_backwards",
           "amount": event["move_backwards"]
         })
         continue
       }
-      if("move_backwards" in event) {
+      if ("move_backwards" in event) {
         res.push({
           "action": "move_backwards",
           "amount": event["move_backwards"]
         })
         continue
       }
-      if("turn_left" in event) {
+      if ("turn_left" in event) {
         res.push({
           "action": "turn_left",
           "amount": event["turn_left"]
         })
         continue
       }
-      if("turn_right" in event) {
+      if ("turn_right" in event) {
         res.push({
           "action": "turn_right",
           "amount": event["turn_right"]
