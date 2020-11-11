@@ -1,4 +1,3 @@
-import { blank_object } from 'svelte/internal'
 import { Robot, HP } from './robot'
 import { AssetsLoader, degrees2radians } from './util'
 
@@ -43,8 +42,8 @@ export class Battle {
   static tracing = true
   static speed = 50
 
-  static end_battle: (id: number) => void
-  static suspend_battle: (msg: string) => void
+  end_battle: (id: number) => void
+  suspend_battle: (msg: string) => void
 
   ctx: CanvasRenderingContext2D
   width: number
@@ -57,20 +56,23 @@ export class Battle {
     this.ctx = ctx
     this.width = width
     this.height = height
-    Battle.end_battle = end_battle
-    Battle.suspend_battle = suspend_battle
+    this.end_battle = end_battle
+    this.suspend_battle = suspend_battle
     Robot.battlefield_height = height
     Robot.battlefield_width = width
   }
 
   init(urls: string[]) {
+    // calculate appearing position
     let robotAppearPosY = this.height / 2
     let robotAppearPosXInc = this.width / 3
     let robotAppearPosX = robotAppearPosXInc
     let id = 0
     Battle.robots = []
     for (let url of urls) {
-      let r = new Robot(robotAppearPosX, robotAppearPosY, url)
+      let r = new Robot(robotAppearPosX, robotAppearPosY, url,
+        (msg: string, ok: boolean) => { this.completed_request(msg, ok) },
+        (x:number, y:number) => {this.hit_robot(x,y)})
       r.id = id++
       Battle.robots.push(r)
       // next appear position
@@ -79,8 +81,39 @@ export class Battle {
         robotAppearPosX = Math.random() * (this.width - 100 + 20)
       }
     }
+
+    // inject enemies
+    for (let rr of Battle.robots) {
+      let enemies: Robot[] = []
+      for (let r of Battle.robots)
+        if (r.id != rr.id)
+          enemies.push(r)
+      rr.init(enemies)
+    }
+
+    // load resources
     Assets.loadAll(() => { this.draw() })
   }
+
+  completed_request(msg: string, ok: boolean) {
+    if (ok) {
+      if (Battle.tracing)
+        Battle.waiting = true
+      this.suspend_battle(msg)
+    } else {
+      Battle.waiting = true
+      this.suspend_battle(msg)
+    }
+  }
+
+  hit_robot(x: number, y: number) {
+    Battle.explosions.push({
+      x: x,
+      y: y,
+      progress: 1
+    })
+  }
+
 
   draw() {
     this.ctx.clearRect(0, 0, this.width, this.height)
@@ -156,21 +189,26 @@ export class Battle {
   currRobots(): Robot[] { return Battle.robots }
 
   loop() {
-    for (let robot of Battle.robots) {
+    // update robots
+    for (let robot of Battle.robots)
       robot.update()
-    }
-    // check battle status
-    if(Battle.explosions.length == 0 && Battle.robots.length <= 1) {
-      Battle.waiting = true
-      if(Battle.robots.length ==0)
-        Battle.end_battle(-1)
+    // check battle status 
+    // are explosion finished so we can declare game over?
+    if (Battle.explosions.length == 0 && Battle.robots.length <= 1) {
+      if (Battle.robots.length == 0)
+        this.end_battle(-1)
       else
-        Battle.end_battle(Battle.robots[0].id)
+        this.end_battle(Battle.robots[0].id)
     }
+    // refresh
     this.draw()
     // iterate
-    if(!Battle.waiting)
+    if (!Battle.tracing || !Battle.waiting)
       setTimeout(() => this.loop(), Battle.speed)
+  }
+
+  wait() {
+    Battle.waiting = true
   }
 
   start() {

@@ -1,8 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { Battle } from "./battle";
-  let base = "https://apigcp.nimbella.io/api/v1/web/msciabgm-3h6qwxvwpw2/";
+  import { inspector } from "./store";
 
+  let base = "https://apigcp.nimbella.io/api/v1/web/msciabgm-3h6qwxvwpw2/";
   let battle: Battle;
 
   let msg = "Prepare to fight!";
@@ -13,6 +14,7 @@
 
   let myBot: string;
   let enemyBot: string;
+  let fighting = false;
 
   function finish(winner) {
     if (winner == -1) {
@@ -24,15 +26,18 @@
     }
     status = "Select Opponents";
     ready = false;
+    fighting = false
   }
 
   function trace() {
-    status = "Fighthing a bit...";
+    status = "Running one round...";
+    fighting = true;
     battle.trace();
   }
 
   function suspended(msg) {
     status = msg;
+    fighting = false
   }
 
   onMount(() => {
@@ -59,12 +64,13 @@
   }
 
   function toggle() {
-    Battle.waiting = !Battle.waiting;
-    if (!Battle.waiting) {
+   fighting = !fighting
+    if (fighting) {
       status = "Fighting!";
       battle.start();
     } else {
       status = "Suspended...";
+      battle.wait()
     }
   }
 </script>
@@ -80,7 +86,12 @@
   <nav class="navigation">
     <section class="container">
       <h1><b>{msg}</b></h1>
-      <div class="row"><canvas id="arena" width="500" height="500" /></div>
+      <div class="row">
+        <div class="column column-60">
+          <canvas id="arena" width="500" height="500" />
+        </div>
+      </div>
+
       <div class="row">
         <h3>{status}</h3>
       </div>
@@ -116,7 +127,7 @@
           </div>
           <div class="column column-20">
             <button id="fight" on:click={toggle}>
-              {#if Battle.waiting}Fight!{:else}Pause!{/if}
+              {#if fighting}Suspend the Battle{:else}Fight to death!{/if}
             </button>
           </div>
         </div>
@@ -135,10 +146,26 @@
               <option value="200">Very Slow</option>
             </select>
           </div>
-		  <div class="column column-20">
-				If your bot is too fast, the battle can be suspended!
-		  </div>
-		</div>
+          <div class="column column-20">
+            If your bot is too fast, the battle can be suspended!
+          </div>
+        </div>
+      {/if}
+      {#if $inspector[0][0] != ''}
+        <div class="row">
+          <div class="column column-50">
+            [Robot 0] Sent #{$inspector[0][2]}
+            <pre>{$inspector[0][0]}</pre>
+            [0] Received
+            <pre>{$inspector[0][1]}</pre>
+          </div>
+          <div class="column column-50">
+            [1] Sent #{$inspector[1][2]}
+            <pre>{$inspector[1][0]}</pre>
+            [1] Received
+            <pre>{$inspector[1][1]}</pre>
+          </div>
+        </div>
       {/if}
     </section>
   </nav>

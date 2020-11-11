@@ -1,6 +1,5 @@
 import { degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
-import { Battle } from './battle'
-import { is_function } from 'svelte/internal'
+import { inspector } from './store'
 
 export const HP = 20
 const BULLET_SPEED = 3
@@ -78,15 +77,29 @@ export class Robot {
   bullet_ts = 0
   enemy_spot = []
   action_to_collide = 0
+  waiting_for_response = false
 
   x: number
   y: number
   url: string
 
-  constructor(x: number, y: number, url: string) {
+  enemies: Robot[] = []
+
+  completed_request: (msg: string, ok: boolean) => void
+  hit_robot: (x: number, y: number) => void
+
+  constructor(x: number, y: number, url: string,
+    completed_request: (msg: string, ok: boolean) => void,
+    hit_robot: (x: number, y: number) => void) {
     this.x = x
     this.y = y
     this.url = url
+    this.completed_request = completed_request
+    this.hit_robot = hit_robot
+  }
+
+  init(enemies: Robot[]) {
+    this.enemies = enemies
   }
 
   move(distance: number) {
@@ -97,7 +110,7 @@ export class Robot {
       Robot.battlefield_width - 15,
       Robot.battlefield_height - 15)) {
       // hit the wall
-      console.log("not-wall-collide")
+      //console.log("not-wall-collide")
       this.status.wall_collide = false
       this.x = newX
       this.y = newY
@@ -128,7 +141,7 @@ export class Robot {
   }
 
   receive(event: Event) {
-    console.log("receive", event)
+    this.waiting_for_response = false
     if (event.action == "shoot") {
       if (this.bullets.length >= MAX_BULLET || this.bullet_ts < BULLET_INTERVAL) {
         return
@@ -169,40 +182,35 @@ export class Robot {
   }
 
   async send(msg: object): Promise<boolean> {
+    let json = JSON.stringify(msg, null, 2)
+    ++this.event_counter
+    inspector.update((info) => { info[this.id][0] = json; info[this.id][2] = "" + this.event_counter; return info })
+    //this.last_sent = JSON.stringify(msg, null, 2)
+    this.waiting_for_response = true
     return fetch(this.url, {
       "method": 'POST',
       "headers": { 'Content-Type': 'application/json' },
-      "body": JSON.stringify(msg)
+      "body": json
     }).then(response => response.text()
     ).then((json) => {
-      //console.log(json)      
+      //console.log(json)  
+      this.waiting_for_response = false
       for (let event of this.decode(json)) {
         this.receive(event)
       }
       // stop after this sendrec
-      if (Battle.tracing) {
-        Battle.waiting = true
-        Battle.suspend_battle("Suspended by request.")
-      }
+      this.completed_request("Suspended by request.", false)
       return true
     }).catch((err) => {
-      Battle.waiting = true
-      Battle.suspend_battle("Suspended by server error.")
-      console.log("Cannot contact server!")
+      this.waiting_for_response = false
+      console.log(err)
+      this.completed_request("Suspended by server error.", true)
       return false
     })
   }
 
-  get_enemy_robots(): Robot[] {
-    let enemies: Robot[] = []
-    for (let r of Battle.robots)
-      if (r.id != this.id)
-        enemies.push(r)
-    return enemies
-  }
-
-  send_event(event) {
-    this.send({
+  async send_event(event): Promise<boolean> {
+    return this.send({
       "event": event,
       "me": this.me,
       "enemy-spot": this.enemy_spot,
@@ -211,22 +219,10 @@ export class Robot {
     })
   }
 
-  send_enemy_spot() {
-    this.send_event("enemy-spot")
-  }
-
-  send_interruption() {
-    if(this.status.wall_collide)
-      this.send_event("wall-collide")
-    else if(this.status.wall_collide)
-      this.send_event("hit")
-    else console.log("unknown interruption!")
-  }
-
   check_enemy_spot() {
     this.enemy_spot = []
     let is_spot = false
-    for (let enemy_robot of this.get_enemy_robots()) {
+    for (let enemy_robot of this.enemies) {
       let my_angle = (this.tank_angle + this.turret_angle) % 360
       my_angle = my_angle < 0 ? my_angle : 360 + my_angle
       let my_radians = degrees2radians(my_angle)
@@ -276,17 +272,13 @@ export class Robot {
       }
 
       let j = -1
-      for (let enemy_robot of this.get_enemy_robots()) {
+      for (let enemy_robot of this.enemies) {
         j++
         let robot_hit = (euclidDistance(b.x, b.y, enemy_robot.x, enemy_robot.y) < 20)
         if (robot_hit) {
           enemy_robot.hp -= 3
           enemy_robot.is_hit = true
-          Battle.explosions.push({
-            x: enemy_robot.x,
-            y: enemy_robot.y,
-            progress: 1
-          })
+          this.hit_robot(enemy_robot.x, enemy_robot.y)
           b = null
           this.bullets.splice(j, 1)
           break
@@ -295,7 +287,8 @@ export class Robot {
     }
   }
 
-  update() {
+  async update() {
+    console.log("update")
     this.me = {
       angle: (this.tank_angle + this.turret_angle) % 360,
       tank_angle: this.tank_angle,
@@ -320,12 +313,12 @@ export class Robot {
       this.events = []
       this.status.is_hit = true
       this.is_hit = false
-      this.send_interruption()
+      await this.send_event("hit")
       return
     }
 
     if (this.check_enemy_spot()) {
-      this.send_enemy_spot()
+      await this.send_event("enemy-spot")
     }
 
     let has_sequential_event = false
@@ -341,7 +334,7 @@ export class Robot {
       }
 
       //console.log(`events[${event.event_id}] = {action=${event.action},progress=${event.progress}}`)
-      if(event && event.amount > event.progress) {
+      if (event && event.amount > event.progress) {
         newEvents.push(event)
         //console.log("reading", event)
         switch (event.action) {
@@ -351,7 +344,7 @@ export class Robot {
             if (this.status.wall_collide) {
               this.action_to_collide = 1 //#forward
               newEvents = []
-              this.send_interruption()
+              await this.send_event("wall-collide")
               break
             }
 
@@ -361,7 +354,7 @@ export class Robot {
             if (this.status.wall_collide) {
               this.action_to_collide = -1 //#backward
               newEvents = []
-              this.send_interruption()
+              await this.send_event("wall-collide")
               break
             }
 
@@ -371,7 +364,7 @@ export class Robot {
             if (this.status.wall_collide) {
               this.action_to_collide = -this.action_to_collide
               newEvents = []
-              this.send_interruption()
+              await this.send_event("wall-collide")
               break
             }
 
@@ -401,12 +394,14 @@ export class Robot {
     }
     this.events = newEvents
     // notify idle
-    if (this.events.length == 0)
-      this.send_event("idle")
+    if (this.events.length == 0 && !this.waiting_for_response) {
+      await this.send_event("idle")
+    }
   }
 
   decode(json: string): Event[] {
     let data: Event | Array<Event> = JSON.parse(json)
+    inspector.update((info) => { info[this.id][1] = JSON.stringify(data, null, 2); return info })
     let events: Event[]
     let res: Event[] = []
     if (data instanceof Event) {
@@ -424,10 +419,10 @@ export class Robot {
         continue
       }
       // short form
-      if ("state" in event) {
+      if ("data" in event) {
         res.push({
           "action": "state",
-          "state": event["state"]
+          "data": event["data"]
         })
       }
       if ("yell" in event) {
