@@ -1,7 +1,6 @@
 import { Robot, HP } from './robot'
 import { AssetsLoader, degrees2radians } from './util'
 
-//const SET_TIMEOUT = 5
 const YELL_TIMEOUT = 50
 
 interface Explosion {
@@ -36,6 +35,7 @@ let Assets = new AssetsLoader({
 
 export class Battle {
 
+  static battle: Battle
   static robots: Robot[] = []
   static explosions: Explosion[] = []
   static speed = 50
@@ -51,7 +51,6 @@ export class Battle {
   tracing = true
   timeout = 0
 
-
   constructor(ctx: CanvasRenderingContext2D,
     width: number, height: number,
     end_battle: (id: number) => void,
@@ -61,6 +60,7 @@ export class Battle {
     this.height = height
     this.end_battle = end_battle
     this.suspend_battle = suspend_battle
+    Battle.battle = this
     Robot.battlefield_height = height
     Robot.battlefield_width = width
   }
@@ -112,7 +112,6 @@ export class Battle {
       progress: 1
     })
   }
-
 
   draw() {
     this.ctx.clearRect(0, 0, this.width, this.height)
@@ -185,10 +184,8 @@ export class Battle {
     }
   }
 
-  currRobots(): Robot[] { return Battle.robots }
-
   loop() {
-    console.log("suspended=", this.suspended, "tracing=", this.tracing)
+    //console.log("suspended=", this.suspended, "tracing=", this.tracing)
     if (this.suspended)
       return
     // update robots

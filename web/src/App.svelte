@@ -10,7 +10,7 @@
   let status = "Select Opponents";
 
   let ready = false;
-  let speed = "50";
+  let speed = "25";
   let debug = false;
 
   let myBot: string;
@@ -27,8 +27,9 @@
     }
     status = "Select Opponents";
     ready = false;
-    fighting = false
-    battle.stop()
+    fighting = false;
+    battle.stop();
+    inspector.set([["","","0",""],["","", "0",""]])
   }
 
   function trace() {
@@ -39,7 +40,7 @@
 
   function suspended(msg: string) {
     status = msg;
-    fighting = false
+    fighting = false;
   }
 
   onMount(() => {
@@ -53,7 +54,7 @@
       finish,
       suspended
     );
-    window["battle"] = battle;
+    window["Battle"] = Battle
   });
 
   function selected() {
@@ -61,18 +62,18 @@
     console.log(urls);
     battle.init(urls);
     ready = true;
-    msg = "Ready!";
-    status = "Make your choice";
+    msg = "Nimbots in position!";
+    status = "Ready to fight.";
   }
 
   function toggle() {
-   fighting = !fighting
+    fighting = !fighting;
     if (fighting) {
       status = "Fighting!";
       battle.start();
     } else {
       status = "Suspended...";
-      battle.stop()
+      battle.stop();
     }
   }
 </script>
@@ -121,18 +122,12 @@
           <div class="column column-25">
             <button id="done" on:click={selected}>Start the Battle</button>
           </div>
-          <div class="column column-25">
-            <label>
-              <input type=checkbox bind:checked={debug}>
-              Debug
-            </label>
-          </div>
         </div>
       {:else}
         <div class="row">
           <div class="column column-25">
             <button id="fight" on:click={toggle}>
-              {#if fighting}Suspend{:else}Fight to death!{/if}
+              {#if fighting}Suspend{:else}Fight non-stop!{/if}
             </button>
           </div>
           <div class="column column-25">
@@ -154,24 +149,34 @@
               <option value="200">Very Slow</option>
             </select>
           </div>
-          <div class="column column-20">
-            If your bot is too fast, the battle can be suspended!
+          <div class="column column-25">
+            <label>
+              <input type="checkbox" bind:checked={debug} />
+              Debug
+            </label>
           </div>
+        </div>
+        <div class="row">
+          If your bot plays too fast, the battle will be suspended!
         </div>
       {/if}
       {#if debug}
         <div class="row">
           <div class="column column-50">
-            [Robot 0] Sent #{$inspector[0][2]}
+            [MyBot] Sent #{$inspector[0][2]}
             <pre>{$inspector[0][0]}</pre>
-            [0] Received
+            [MyBot] Received
             <pre>{$inspector[0][1]}</pre>
+            [MyBot] Queued Events
+            <pre>{$inspector[0][3]}</pre>
           </div>
           <div class="column column-50">
-            [1] Sent #{$inspector[1][2]}
+            [Enemy] Sent #{$inspector[1][2]}
             <pre>{$inspector[1][0]}</pre>
-            [1] Received
+            [Ememy] Received
             <pre>{$inspector[1][1]}</pre>
+            [Enemy] Queued Events
+            <pre>{$inspector[1][3]}</pre>
           </div>
         </div>
       {/if}
