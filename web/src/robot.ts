@@ -1,7 +1,7 @@
 import { degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
 import { inspector } from './store'
 
-export const HP = 20
+export const HP = 3
 const BULLET_SPEED = 3
 const MAX_BULLET = 5
 const BULLET_INTERVAL = 15
@@ -199,12 +199,12 @@ export class Robot {
         this.receive(event)
       }
       // stop after this sendrec
-      this.completed_request("Suspended by request.", false)
+      this.completed_request("Round completed.", true)
       return true
     }).catch((err) => {
       this.waiting_for_response = false
       console.log(err)
-      this.completed_request("Suspended by server error.", true)
+      this.completed_request("Server error.", false)
       return false
     })
   }

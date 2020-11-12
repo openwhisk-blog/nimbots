@@ -38,8 +38,6 @@ export class Battle {
 
   static robots: Robot[] = []
   static explosions: Explosion[] = []
-  static waiting = true
-  static tracing = true
   static speed = 50
 
   end_battle: (id: number) => void
@@ -48,6 +46,11 @@ export class Battle {
   ctx: CanvasRenderingContext2D
   width: number
   height: number
+
+  suspended = true
+  tracing = true
+  timeout = 0
+
 
   constructor(ctx: CanvasRenderingContext2D,
     width: number, height: number,
@@ -72,7 +75,7 @@ export class Battle {
     for (let url of urls) {
       let r = new Robot(robotAppearPosX, robotAppearPosY, url,
         (msg: string, ok: boolean) => { this.completed_request(msg, ok) },
-        (x:number, y:number) => {this.hit_robot(x,y)})
+        (x: number, y: number) => { this.hit_robot(x, y) })
       r.id = id++
       Battle.robots.push(r)
       // next appear position
@@ -96,12 +99,8 @@ export class Battle {
   }
 
   completed_request(msg: string, ok: boolean) {
-    if (ok) {
-      if (Battle.tracing)
-        Battle.waiting = true
-      this.suspend_battle(msg)
-    } else {
-      Battle.waiting = true
+    if (!ok || this.tracing) {
+      this.suspended = true
       this.suspend_battle(msg)
     }
   }
@@ -189,6 +188,9 @@ export class Battle {
   currRobots(): Robot[] { return Battle.robots }
 
   loop() {
+    console.log("suspended=", this.suspended, "tracing=", this.tracing)
+    if (this.suspended)
+      return
     // update robots
     for (let robot of Battle.robots)
       robot.update()
@@ -199,27 +201,29 @@ export class Battle {
         this.end_battle(-1)
       else
         this.end_battle(Battle.robots[0].id)
+      this.stop()
     }
     // refresh
     this.draw()
     // iterate
-    if (!Battle.tracing || !Battle.waiting)
-      setTimeout(() => this.loop(), Battle.speed)
+    if (!this.suspended)
+      this.timeout = setTimeout(() => this.loop(), Battle.speed)
   }
 
-  wait() {
-    Battle.waiting = true
+  stop() {
+    this.suspended = true
+    clearTimeout(this.timeout)
   }
 
   start() {
-    Battle.waiting = false
-    Battle.tracing = false
+    this.suspended = false
+    this.tracing = false
     this.loop()
   }
 
   trace() {
-    Battle.waiting = false
-    Battle.tracing = true
+    this.suspended = false
+    this.tracing = true
     this.loop()
   }
 }

@@ -6,11 +6,12 @@
   let base = "https://apigcp.nimbella.io/api/v1/web/msciabgm-3h6qwxvwpw2/";
   let battle: Battle;
 
-  let msg = "Prepare to fight!";
+  let msg = "Nimbots Arena";
   let status = "Select Opponents";
 
   let ready = false;
   let speed = "50";
+  let debug = false;
 
   let myBot: string;
   let enemyBot: string;
@@ -18,7 +19,7 @@
 
   function finish(winner) {
     if (winner == -1) {
-      msg = "The fight is a draw.";
+      msg = "Draw.";
     } else if (winner == 0) {
       msg = "You win!";
     } else {
@@ -27,6 +28,7 @@
     status = "Select Opponents";
     ready = false;
     fighting = false
+    battle.stop()
   }
 
   function trace() {
@@ -35,7 +37,7 @@
     battle.trace();
   }
 
-  function suspended(msg) {
+  function suspended(msg: string) {
     status = msg;
     fighting = false
   }
@@ -70,7 +72,7 @@
       battle.start();
     } else {
       status = "Suspended...";
-      battle.wait()
+      battle.stop()
     }
   }
 </script>
@@ -97,7 +99,7 @@
       </div>
       {#if !ready}
         <div class="row">
-          <div class="column column-20">
+          <div class="column column-25">
             <label for="mybot">My Bot</label>
             <select bind:value={myBot} id="mybot">
               <option value="nimbots/JsBot">JsBot</option>
@@ -105,7 +107,7 @@
               <option value="nimbots/GoBot">GoBot</option>
             </select>
           </div>
-          <div class="column column-20">
+          <div class="column column-25">
             <label for="enemy">Enemy Bot</label>
             <select bind:value={enemyBot} id="enemy">
               <option value="testbots/Stage0">Stage0</option>
@@ -116,23 +118,29 @@
           </div>
         </div>
         <div class="row">
-          <div class="column column-20">
-            <button id="done" on:click={selected}>Done</button>
+          <div class="column column-25">
+            <button id="done" on:click={selected}>Start the Battle</button>
+          </div>
+          <div class="column column-25">
+            <label>
+              <input type=checkbox bind:checked={debug}>
+              Debug
+            </label>
           </div>
         </div>
       {:else}
         <div class="row">
-          <div class="column column-20">
-            <button id="step" on:click={trace}>Single Step</button>
-          </div>
-          <div class="column column-20">
+          <div class="column column-25">
             <button id="fight" on:click={toggle}>
-              {#if fighting}Suspend the Battle{:else}Fight to death!{/if}
+              {#if fighting}Suspend{:else}Fight to death!{/if}
             </button>
+          </div>
+          <div class="column column-25">
+            <button id="step" on:click={trace}>Fight one round</button>
           </div>
         </div>
         <div class="row">
-          <div class="column column-20">
+          <div class="column column-25">
             <label for="enemy">Battle Speed</label>
             <select
               bind:value={speed}
@@ -151,7 +159,7 @@
           </div>
         </div>
       {/if}
-      {#if $inspector[0][0] != ''}
+      {#if debug}
         <div class="row">
           <div class="column column-50">
             [Robot 0] Sent #{$inspector[0][2]}
