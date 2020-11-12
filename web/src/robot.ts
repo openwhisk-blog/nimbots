@@ -68,6 +68,8 @@ export class Robot {
   }
 
   is_hit = false
+  is_collided = false
+  is_spotted = false
   is_yell = false
   yell_ts = 0
   yell_msg = undefined
@@ -275,19 +277,6 @@ export class Robot {
     if (this.bullets.length > 0)
       this.update_bullet()
 
-    if (this.is_hit) {
-      this.events = []
-      this.status.is_hit = true
-      this.is_hit = false
-      await this.send_event("hit")
-      return
-    }
-
-    if (this.check_enemy_spot()) {
-      await this.send_event("enemy-spot")
-      return
-    }
-
     // parallel actions
     let already_turned = false
     for (let event of this.events) {
@@ -297,7 +286,7 @@ export class Robot {
           if (this.bullets.length >= MAX_BULLET || this.bullet_ts < BULLET_INTERVAL) {
             continue
           }
-          event.progress = 2
+          event.progress = 1
           this.bullet_ts = 0
           let bullet: Bullet = {
             x: this.x, y: this.y,
@@ -308,14 +297,14 @@ export class Robot {
         case "data":
           console.log(this.id, "par", event.action)
           this.data = event.data
-          event.progress = 2
+          event.progress = 1
           continue
         case "yell":
           console.log(this.id, "par", event.action)
           if (this.yell_ts == 0) {
             this.yell(event.msg)
           }
-          event.progress = 2
+          event.progress = 1
           continue
         case "turn_turret_left":
           console.log(this.id, "par", event.action)
@@ -339,61 +328,109 @@ export class Robot {
     // sequential actions
     let newEvents = []
     console.log("processing seq", this.events)
-    loop: for(let event of this.events) {
-      if(event.progress < event.amount) {
+    let processed = false
+    loop: for (let event of this.events) {
+      if (event.progress < event.amount) {
         newEvents.push(event)
       } else {
         console.log("dropping", event.action)
         continue
       }
       // handle parallel action
-      switch (event.action) {
-        case "move_forwards":
-          console.log(this.id, "seq", event.action)
-          event.progress++
-          this.move(1)
-          if (this.status.wall_collide) {
-            this.action_to_collide = 1 //#forward
-          }
-          break loop
-        case "move_backwards":
-          console.log(this.id, "seq", event.action)
-          event.progress--
-          this.move(-1)
-          if (this.status.wall_collide) {
-            this.action_to_collide = -1 //#backward
-          }
-          break loop
-        case "move_opposide":
-          console.log(this.id, "seq", event.action)
-          event.progress++
-          this.move(-this.action_to_collide)
-          if (this.status.wall_collide) {
-            this.action_to_collide = -this.action_to_collide
-          }
-          break loop
-        case "turn_left":
-          console.log(this.id, "seq", event.action)
-          event.progress++
-          this.turn(-1)
-          break loop
-        case "turn_right":
-          console.log(this.id, "seq", event.action)
-          event.progress++
-          this.turn(1)
-          break loop
-      }
+      if (!processed)
+        switch (event.action) {
+          case "move_forwards":
+            console.log(this.id, "seq", event.action)
+            event.progress++
+            this.move(1)
+            if (this.status.wall_collide) {
+              this.action_to_collide = 1 //#forward
+            }
+            processed = true
+            break
+          case "move_backwards":
+            console.log(this.id, "seq", event.action)
+            event.progress--
+            this.move(-1)
+            if (this.status.wall_collide) {
+              this.action_to_collide = -1 //#backward
+            }
+            processed = true
+            break
+          case "move_opposide":
+            console.log(this.id, "seq", event.action)
+            event.progress++
+            this.move(-this.action_to_collide)
+            if (this.status.wall_collide) {
+              this.action_to_collide = -this.action_to_collide
+            }
+            processed = true
+            break
+          case "turn_left":
+            console.log(this.id, "seq", event.action)
+            event.progress++
+            this.turn(-1)
+            processed = true
+            break
+          case "turn_right":
+            console.log(this.id, "seq", event.action)
+            event.progress++
+            this.turn(1)
+            processed = true
+            break
+        }
     }
     this.events = newEvents
+
+    // check hit
+    if (!this.is_spotted && this.check_enemy_spot()) {
+      this.is_spotted = true
+      await this.send_event("enemy-spot")
+      return
+    }
+
+    if (this.is_hit) {
+      this.status.is_hit = true
+      await this.send_event("hit")
+      this.is_hit = false
+      return
+    }
+
     // check collision
-    if (this.status.wall_collide) {
-      this.events = []
+    if (!this.is_collided && this.status.wall_collide) {
+      this.is_collided = true
       await this.send_event("wall-collide")
-    } else 
+      return
+    }
+
     // notify idle
     if (this.events.length == 0 && !this.waiting_for_response) {
       await this.send_event("idle")
+      this.is_hit = false
+      this.is_collided = false
+      this.is_spotted = false
     }
+  }
+
+
+  actions = [
+    "move_forwards",
+    "move_backwards",
+    "move_opposide",
+    "turn_left",
+    "turn_right",
+    "turn_turret_left",
+    "turn_turret_right",
+    "yell",
+    "shoot"
+  ]
+
+  checkEvent(event: object) {
+    for(let key in event) {
+      if(this.actions.indexOf(key)==-1)
+        return "ERROR! '"+key+ "' ???"
+    }
+    return ""
   }
 
   decode(json: string): Event[] {
@@ -417,46 +454,55 @@ export class Robot {
         res.push(event)
         continue
       }
+      let err = this.checkEvent(event)
+      if(err != "") {
+        res.push({
+          "action": "yell",
+          "msg": err,
+          "amount": 1
+        })
+        console.log(err)
+      }
       // short form
       if ("data" in event) {
         res.push({
           "action": "state",
           "data": event["data"],
           "amount": 1
-        })
+        })    
       }
       if ("yell" in event) {
         res.push({
           "action": "yell",
           "msg": event["yell"],
           "amount": 1
-        })
+        })      
       }
       if ("shoot" in event) {
         if (event.shoot)
           res.push({
             "action": "shoot",
             "amount": 1
-          })
+          })        
       }
       // left or right but not both
       if ("turn_turret_right" in event) {
         res.push({
           "action": "turn_turret_right",
           "amount": event["turn_turret_right"]
-        })
+        })        
       } else if ("turn_turret_left" in event) {
         res.push({
           "action": "turn_turret_left",
           "amount": event["turn_turret_left"]
-        })
+        })       
       }
       // sequential actions
       if ("move_opposide" in event) {
         res.push({
           "action": "move_opposide",
           "amount": event["move_opposide"]
-        })
+        })       
         continue
       }
       if ("move_forwards" in event) {
@@ -464,6 +510,7 @@ export class Robot {
           "action": "move_forwards",
           "amount": event["move_forwards"]
         })
+        delete event["move_forwards"]
         continue
       }
       if ("move_backwards" in event) {
@@ -471,6 +518,7 @@ export class Robot {
           "action": "move_backwards",
           "amount": event["move_backwards"]
         })
+        delete event["move_backwards"]
         continue
       }
       if ("turn_left" in event) {
@@ -478,6 +526,7 @@ export class Robot {
           "action": "turn_left",
           "amount": event["turn_left"]
         })
+        delete event["turn_left"]
         continue
       }
       if ("turn_right" in event) {

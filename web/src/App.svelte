@@ -142,11 +142,11 @@
               on:blur={() => {
                 Battle.speed = parseInt(speed);
               }}>
-              <option value="10">Very Fast</option>
-              <option value="25">Fast</option>
-              <option value="50">Normal</option>
-              <option value="100">Slow</option>
-              <option value="200">Very Slow</option>
+              <option value="5">Very Fast</option>
+              <option value="10">Fast</option>
+              <option value="25">Normal</option>
+              <option value="50">Slow</option>
+              <option value="100">Very Slow</option>
             </select>
           </div>
           <div class="column column-25">

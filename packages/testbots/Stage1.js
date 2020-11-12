@@ -8,14 +8,14 @@ function main(args) {
             })
             res.push({
                 "move_backwards": 50,
-                "turn_turret_right ": 180,
+                "turn_turret_right": 180,
                 "shoot": true
             })
             break;
         case "wall-collide":
             res.push({ "move_opposide": 10 })
             res.push({ "turn_left": 90 })
-            res.push({ "move_forward": 100 })
+            res.push({ "move_forwards": 100 })
             break
         case "hit":
             res.push({
