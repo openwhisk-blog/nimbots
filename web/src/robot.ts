@@ -1,7 +1,7 @@
 import { log, degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
 import { inspector } from './store'
 
-export const HP = 20
+export const HP = 5
 const BULLET_SPEED = 3
 const MAX_BULLET = 5
 const BULLET_INTERVAL = 50
@@ -51,7 +51,7 @@ export class Robot {
   static battlefield_height: number = 0
 
   me: Info
-  data: any = undefined
+  data: object = {}
   id: number = 0
   hp: number = HP
 
@@ -72,7 +72,7 @@ export class Robot {
   yell_ts = 0
   yell_msg = undefined
   bullet_ts = 0
-  enemy_spot = []
+  enemy_spot = {}
   action_to_collide = 0
   waiting_for_response = false
 
@@ -182,15 +182,18 @@ export class Robot {
   async send_event(event): Promise<boolean> {
     return this.send({
       "event": event,
-      "me": this.me,
-      "enemy-spot": this.enemy_spot,
-      "status": this.status,
+      "energy": this.hp,
+      "x": this.me.x,
+      "y": this.me.y,
+      "tank_angle": this.tank_angle,
+      "turret_angle": this.turret_angle,
+      "enemy_spot": this.enemy_spot,
       "data": this.data
     })
   }
 
   check_enemy_spot() {
-    this.enemy_spot = []
+    this.enemy_spot = {}
     let is_spot = false
     for (let enemy_robot of this.enemies) {
       let my_angle = (this.tank_angle + this.turret_angle) % 360
@@ -214,7 +217,14 @@ export class Robot {
         let enemy_position_degrees = radians2degrees(enemy_position_radians)
         if (enemy_position_degrees < 0)
           enemy_position_degrees = 360 + enemy_position_degrees
-        this.enemy_spot.push({ id: enemy_robot.id, angle: enemy_position_degrees, distance: distance, hp: enemy_robot.hp, x: enemy_robot.x, y: enemy_robot.y })
+        this.enemy_spot = {
+          //id: enemy_robot.id, 
+          x: enemy_robot.x, 
+          y: enemy_robot.y, 
+          angle: enemy_position_degrees, 
+          distance: distance, 
+          energy: enemy_robot.hp, 
+        }
         is_spot = true
       }
     }
@@ -241,7 +251,7 @@ export class Robot {
         j++
         let robot_hit = (euclidDistance(b.x, b.y, enemy_robot.x, enemy_robot.y) < 20)
         if (robot_hit) {
-          enemy_robot.hp -= 3
+          enemy_robot.hp -= 1
           enemy_robot.is_hit = true
           this.hit_robot(enemy_robot.x, enemy_robot.y)
           b = null
