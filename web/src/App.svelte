@@ -1,21 +1,23 @@
 <script lang="ts">
+  export let base;
   import { onMount } from "svelte";
   import { Battle } from "./battle";
   import { inspector } from "./store";
+  import { log } from "./util";
 
-  let base = "https://apigcp.nimbella.io/api/v1/web/msciabgm-3h6qwxvwpw2/";
   let battle: Battle;
 
   let msg = "Nimbots Arena";
   let status = "Select Opponents";
 
   let ready = false;
-  let speed = "25";
+  let speed = "10";
   let debug = false;
 
-  let myBot: string;
+  let myBot: string = base + "nimbots/SampleJs";
   let enemyBot: string;
   let fighting = false;
+  let welcome = true;
 
   function finish(winner) {
     if (winner == -1) {
@@ -29,13 +31,16 @@
     ready = false;
     fighting = false;
     battle.stop();
-    inspector.set([["","","0",""],["","", "0",""]])
+    inspector.set([
+      ["", "", "0", ""],
+      ["", "", "0", ""],
+    ]);
   }
 
   function trace() {
-    status = "Running one round...";
+    status = "Fighting for one round...";
     fighting = true;
-    battle.trace();
+    msg = battle.trace();
   }
 
   function suspended(msg: string) {
@@ -47,6 +52,7 @@
     let canvas: HTMLCanvasElement = document.getElementById(
       "arena"
     ) as HTMLCanvasElement;
+    Battle.speed = parseInt(speed)
     battle = new Battle(
       canvas.getContext("2d"),
       parseInt(canvas.getAttribute("width")),
@@ -54,15 +60,15 @@
       finish,
       suspended
     );
-    window["Battle"] = Battle
+    window["Battle"] = Battle;
   });
 
   function selected() {
-    let urls = [base + myBot, base + enemyBot];
+    let urls = [myBot, base + enemyBot];
     console.log(urls);
     battle.init(urls);
     ready = true;
-    msg = "Nimbots in position!";
+    msg = "Nimbots assembled!";
     status = "Ready to fight.";
   }
 
@@ -70,7 +76,7 @@
     fighting = !fighting;
     if (fighting) {
       status = "Fighting!";
-      battle.start();
+      msg = battle.start();
     } else {
       status = "Suspended...";
       battle.stop();
@@ -94,27 +100,45 @@
           <canvas id="arena" width="500" height="500" />
         </div>
       </div>
-
       <div class="row">
-        <h3>{status}</h3>
+        <div class="column column-40 column-offset-5">
+          <h3>{status}</h3>
+        </div>
       </div>
       {#if !ready}
         <div class="row">
-          <div class="column column-25">
-            <label for="mybot">My Bot</label>
-            <select bind:value={myBot} id="mybot">
-              <option value="nimbots/JsBot">JsBot</option>
-              <option value="nimbots/PyBot">PyBot</option>
-              <option value="nimbots/GoBot">GoBot</option>
-            </select>
+          <div class="column column-60">
+            To play
+            <b>Nimbots</b>, code and deploy your robot as a serverless
+            <a href="https://www.nimbella.com">Nimbella</a>
+            action. You can find
+            <a
+              target="_blank"
+              href="https://github.com/openwhisk-blog/nimbots/tree/master/packages/nimbots">some
+              examples here</a>
+            and a description of the
+            <a
+              target="_blank"
+              href="https://github.com/openwhisk-blog/nimbots">api here</a>. You
+            will then be able
+            <b>soon</b>
+            to submit your robot in a competition and win prizes!
           </div>
-          <div class="column column-25">
+        </div>
+        <div class="row">
+          <div class="column column-50">
+            <label for="mybot">My Bot</label>
+            <input type="text" id="mybot" value={myBot} />
+          </div>
+        </div>
+        <div class="row">
+          <div class="column column-50">
             <label for="enemy">Enemy Bot</label>
             <select bind:value={enemyBot} id="enemy">
-              <option value="testbots/Stage0">Stage0</option>
-              <option value="testbots/Stage1">Stage1</option>
-              <option value="testbots/Stage2">Stage2</option>
-              <option value="testbots/Stage3">Stage3</option>
+              <option value="nimbots/BackAndForth">BackAndForth</option>
+              <option value="nimbots/LookingAround">LookingAround</option>
+              <option value="nimbots/RandomTurn">RandomTurn</option>
+              <option value="nimbots/LookAndShot">LookAndShot</option>
             </select>
           </div>
         </div>
@@ -125,60 +149,75 @@
         </div>
       {:else}
         <div class="row">
-          <div class="column column-25">
+          <div class="column column-20">
             <button id="fight" on:click={toggle}>
-              {#if fighting}Suspend{:else}Fight non-stop!{/if}
+              {#if fighting}Suspend{:else}Fight!{/if}
             </button>
           </div>
-          <div class="column column-25">
-            <button id="step" on:click={trace}>Fight one round</button>
-          </div>
-        </div>
-        <div class="row">
-          <div class="column column-25">
-            <label for="enemy">Battle Speed</label>
-            <select
-              bind:value={speed}
-              on:blur={() => {
-                Battle.speed = parseInt(speed);
-              }}>
-              <option value="5">Very Fast</option>
-              <option value="10">Fast</option>
-              <option value="25">Normal</option>
-              <option value="50">Slow</option>
-              <option value="100">Very Slow</option>
-            </select>
-          </div>
-          <div class="column column-25">
+          <div class="column column-20">
             <label>
               <input type="checkbox" bind:checked={debug} />
               Debug
             </label>
           </div>
-        </div>
-        <div class="row">
-          If your bot plays too fast, the battle will be suspended!
-        </div>
-      {/if}
-      {#if debug}
-        <div class="row">
-          <div class="column column-50">
-            [MyBot] Sent #{$inspector[0][2]}
-            <pre>{$inspector[0][0]}</pre>
-            [MyBot] Received
-            <pre>{$inspector[0][1]}</pre>
-            [MyBot] Queued Events
-            <pre>{$inspector[0][3]}</pre>
-          </div>
-          <div class="column column-50">
-            [Enemy] Sent #{$inspector[1][2]}
-            <pre>{$inspector[1][0]}</pre>
-            [Ememy] Received
-            <pre>{$inspector[1][1]}</pre>
-            [Enemy] Queued Events
-            <pre>{$inspector[1][3]}</pre>
+          <div class="column column-20">
+            <a href="/">Reset</a>
           </div>
         </div>
+        {#if debug}
+          <div class="row">
+            <div class="column column-25">
+              <button id="step" on:click={trace}>Fight one round</button>
+            </div>
+            <div class="column column-25">
+              <label for="enemy">Battle Speed</label>
+              <select
+                bind:value={speed}
+                on:blur={() => {
+                  Battle.speed = parseInt(speed);
+                }}>
+                <option value="5">Very Fast</option>
+                <option value="10">Fast</option>
+                <option value="25">Normal</option>
+                <option value="50">Slow</option>
+                <option value="100">Very Slow</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            If your bot plays too fast, the battle will be suspended!
+          </div>
+          <div class="row">
+            Trace:&nbsp;
+            <label>
+              <input type="checkbox" bind:checked={log.eventOn} />
+              Events&nbsp;
+            </label>
+            <label>
+              <input type="checkbox" bind:checked={log.requestOn} />
+              Requests&nbsp;
+            </label>
+            <label>
+              <input type="checkbox" bind:checked={log.actionOn} />
+              Actions&nbsp;
+            </label>
+            (open console)
+          </div>
+          <div class="row">
+            <div class="column column-50">
+              [MyBot] Sent #{$inspector[0][2]}
+              <pre>{$inspector[0][0]}</pre>
+              [MyBot] Received
+              <pre>{$inspector[0][1]}</pre>
+            </div>
+            <div class="column column-50">
+              [Enemy] Sent #{$inspector[1][2]}
+              <pre>{$inspector[1][0]}</pre>
+              [Ememy] Received
+              <pre>{$inspector[1][1]}</pre>
+            </div>
+          </div>
+        {/if}
       {/if}
     </section>
   </nav>

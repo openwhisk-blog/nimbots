@@ -1,4 +1,4 @@
-import { degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
+import { log, degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
 import { inspector } from './store'
 
 export const HP = 20
@@ -68,8 +68,6 @@ export class Robot {
   }
 
   is_hit = false
-  is_collided = false
-  is_spotted = false
   is_yell = false
   yell_ts = 0
   yell_msg = undefined
@@ -102,7 +100,7 @@ export class Robot {
   }
 
   move(distance: number) {
-    console.log(this.id, "move", distance)
+    log.action(this.id, "move", distance)
     let newX = this.x + distance * Math.cos(degrees2radians(this.tank_angle));
     let newY = this.y + distance * Math.sin(degrees2radians(this.tank_angle));
 
@@ -121,6 +119,7 @@ export class Robot {
   }
 
   turn(degrees: number) {
+    log.action(this.id, "turn", degrees)
     this.tank_angle += degrees
     this.tank_angle = this.tank_angle % 360
     if (this.tank_angle < 0)
@@ -128,6 +127,7 @@ export class Robot {
   }
 
   turn_turret(degrees: number) {
+    log.action(this.id, "turn_turret", degrees)
     this.turret_angle += degrees
     this.turret_angle = this.turret_angle % 360
     if (this.turret_angle < 0)
@@ -135,6 +135,7 @@ export class Robot {
   }
 
   yell(msg: string) {
+    log.action(this.id, "yell", msg)
     this.is_yell = true
     this.yell_ts = 0
     this.yell_msg = msg
@@ -149,7 +150,7 @@ export class Robot {
       info[this.id][3] = JSON.stringify(this.events, null, 2)
       return info
     })
-    //this.last_sent = JSON.stringify(msg, null, 2)
+    log.event(msg)
     this.waiting_for_response = true
     return fetch(this.url, {
       "method": 'POST',
@@ -162,11 +163,11 @@ export class Robot {
       let newEvents = []
       for (let event of this.decode(json)) {
         event.progress = 0
-        console.log("queue add", this.id, event)
+        log.request(this.id, event)
         newEvents.push(event)
       }
       this.events = newEvents
-      console.log(newEvents)
+      //console.log(newEvents)
       // stop after this sendrec
       this.completed_request("Round completed.", true)
       return true
@@ -208,11 +209,6 @@ export class Robot {
 
       let max = enemy_position_radians + radians_diff
       let min = enemy_position_radians - radians_diff
-
-      //# console.log "max = #{max}"
-      //# console.log "min = #{min}"
-      //# console.log "my-radians = #{my-radians}"
-      //# console.log "diff =" + radians-diff
 
       if (my_radians >= min && my_radians <= max) {
         let enemy_position_degrees = radians2degrees(enemy_position_radians)
@@ -282,7 +278,7 @@ export class Robot {
     for (let event of this.events) {
       switch (event.action) {
         case "shoot":
-          console.log(this.id, "par", event.action)
+          //console.log("par event", this.id,  event.action)
           if (this.bullets.length >= MAX_BULLET || this.bullet_ts < BULLET_INTERVAL) {
             continue
           }
@@ -295,19 +291,19 @@ export class Robot {
           this.bullets.push(bullet)
           continue
         case "data":
-          console.log(this.id, "par", event.action)
+          //console.log(this.id, "par", event.action)
           this.data = event.data
           event.progress = 1
           continue
         case "yell":
-          console.log(this.id, "par", event.action)
+          //console.log(this.id, "par", event.action)
           if (this.yell_ts == 0) {
             this.yell(event.msg)
           }
           event.progress = 1
           continue
         case "turn_turret_left":
-          console.log(this.id, "par", event.action)
+          //console.log(this.id, "par", event.action)
           if (!already_turned) {
             event.progress++
             this.turn_turret(-1)
@@ -315,7 +311,7 @@ export class Robot {
           }
           continue
         case "turn_turret_right":
-          console.log(this.id, "par", event.action)
+          //console.log(this.id, "par", event.action)
           if (!already_turned) {
             event.progress++
             this.turn_turret(1)
@@ -327,20 +323,20 @@ export class Robot {
 
     // sequential actions
     let newEvents = []
-    console.log("processing seq", this.events)
+    //console.log("processing seq", this.events)
     let processed = false
     loop: for (let event of this.events) {
       if (event.progress < event.amount) {
         newEvents.push(event)
       } else {
-        console.log("dropping", event.action)
+        //console.log("dropping", event.action)
         continue
       }
       // handle parallel action
       if (!processed)
         switch (event.action) {
           case "move_forwards":
-            console.log(this.id, "seq", event.action)
+            //console.log("sequential", this.id, event.action)
             event.progress++
             this.move(1)
             if (this.status.wall_collide) {
@@ -349,8 +345,8 @@ export class Robot {
             processed = true
             break
           case "move_backwards":
-            console.log(this.id, "seq", event.action)
-            event.progress--
+            //console.log(this.id, "seq", event.action)
+            event.progress++
             this.move(-1)
             if (this.status.wall_collide) {
               this.action_to_collide = -1 //#backward
@@ -358,7 +354,7 @@ export class Robot {
             processed = true
             break
           case "move_opposide":
-            console.log(this.id, "seq", event.action)
+            //console.log(this.id, "seq", event.action)
             event.progress++
             this.move(-this.action_to_collide)
             if (this.status.wall_collide) {
@@ -367,13 +363,13 @@ export class Robot {
             processed = true
             break
           case "turn_left":
-            console.log(this.id, "seq", event.action)
+            //console.log(this.id, "seq", event.action)
             event.progress++
             this.turn(-1)
             processed = true
             break
           case "turn_right":
-            console.log(this.id, "seq", event.action)
+            //console.log(this.id, "seq", event.action)
             event.progress++
             this.turn(1)
             processed = true
@@ -382,36 +378,36 @@ export class Robot {
     }
     this.events = newEvents
 
-    // check hit
-    if (!this.is_spotted && this.check_enemy_spot()) {
-      this.is_spotted = true
-      await this.send_event("enemy-spot")
-      return
-    }
+    if (!this.waiting_for_response) {
+    
+      // check if spotted enemy
+      if (this.check_enemy_spot()) {
+        await this.send_event("enemy-spot")
+        return
+      }
 
-    if (this.is_hit) {
-      this.status.is_hit = true
-      await this.send_event("hit")
-      this.is_hit = false
-      return
-    }
+      if (this.is_hit) {
+        this.status.is_hit = true
+        this.events = []
+        await this.send_event("hit")
+        this.is_hit = false
+        return
+      }
 
-    // check collision
-    if (!this.is_collided && this.status.wall_collide) {
-      this.is_collided = true
-      await this.send_event("wall-collide")
-      return
-    }
+      // check collision
+      if (this.status.wall_collide) {
+        this.events = []
+        await this.send_event("wall-collide")
+        return
+      }
 
-    // notify idle
-    if (this.events.length == 0 && !this.waiting_for_response) {
-      await this.send_event("idle")
-      this.is_hit = false
-      this.is_collided = false
-      this.is_spotted = false
+      // notify idle
+      if (this.events.length == 0) {
+        // check if it is hit
+        await this.send_event("idle")
+      }
     }
   }
-
 
   actions = [
     "move_forwards",
@@ -426,9 +422,9 @@ export class Robot {
   ]
 
   checkEvent(event: object) {
-    for(let key in event) {
-      if(this.actions.indexOf(key)==-1)
-        return "ERROR! '"+key+ "' ???"
+    for (let key in event) {
+      if (this.actions.indexOf(key) == -1)
+        return "ERROR! '" + key + "' ???"
     }
     return ""
   }
@@ -455,7 +451,7 @@ export class Robot {
         continue
       }
       let err = this.checkEvent(event)
-      if(err != "") {
+      if (err != "") {
         res.push({
           "action": "yell",
           "msg": err,
@@ -469,40 +465,40 @@ export class Robot {
           "action": "state",
           "data": event["data"],
           "amount": 1
-        })    
+        })
       }
       if ("yell" in event) {
         res.push({
           "action": "yell",
           "msg": event["yell"],
           "amount": 1
-        })      
+        })
       }
       if ("shoot" in event) {
         if (event.shoot)
           res.push({
             "action": "shoot",
             "amount": 1
-          })        
+          })
       }
       // left or right but not both
       if ("turn_turret_right" in event) {
         res.push({
           "action": "turn_turret_right",
           "amount": event["turn_turret_right"]
-        })        
+        })
       } else if ("turn_turret_left" in event) {
         res.push({
           "action": "turn_turret_left",
           "amount": event["turn_turret_left"]
-        })       
+        })
       }
       // sequential actions
       if ("move_opposide" in event) {
         res.push({
           "action": "move_opposide",
           "amount": event["move_opposide"]
-        })       
+        })
         continue
       }
       if ("move_forwards" in event) {

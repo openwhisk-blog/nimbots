@@ -62,7 +62,7 @@ function main(args) {
             data.idle_count = 0
             break
         default:
-            console.log(args)        
+            console.log("unexpected event", args)         
     }
     res.push({"data": data})
     return { "body": res}

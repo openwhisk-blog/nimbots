@@ -1,5 +1,5 @@
 import { Robot, HP } from './robot'
-import { AssetsLoader, degrees2radians } from './util'
+import { log, AssetsLoader, degrees2radians } from './util'
 
 const YELL_TIMEOUT = 50
 
@@ -39,6 +39,7 @@ export class Battle {
   static robots: Robot[] = []
   static explosions: Explosion[] = []
   static speed = 50
+  
 
   end_battle: (id: number) => void
   suspend_battle: (msg: string) => void
@@ -51,7 +52,10 @@ export class Battle {
   tracing = true
   timeout = 0
 
-  constructor(ctx: CanvasRenderingContext2D,
+  title = ""
+
+  constructor(
+    ctx: CanvasRenderingContext2D,
     width: number, height: number,
     end_battle: (id: number) => void,
     suspend_battle: (string) => void) {
@@ -66,6 +70,7 @@ export class Battle {
   }
 
   init(urls: string[]) {
+    this.title = urls[0].split("/").pop() + " vs "+urls[1].split("/").pop()
     // calculate appearing position
     let robotAppearPosY = this.height / 2
     let robotAppearPosXInc = this.width / 3
@@ -92,6 +97,7 @@ export class Battle {
         if (r.id != rr.id)
           enemies.push(r)
       rr.init(enemies)
+
     }
 
     // load resources
@@ -216,12 +222,14 @@ export class Battle {
     this.suspended = false
     this.tracing = false
     this.loop()
+    return this.title
   }
 
   trace() {
     this.suspended = false
     this.tracing = true
     this.loop()
+    return this.title
   }
 }
 
