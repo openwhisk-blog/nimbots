@@ -88,5 +88,5 @@ The parallel actions are:
 - `shot: true`: fires a bullet; note you can fire up to 5 bullets at the same time
 - `yell: <string>`: yell a message that will be displayed in the battle field
 
-You can code your actions in any programming language supported by Nimbella. Check 
+You can code your actions in any programming language supported by Nimbella. Check [those examples](packages/nimbots)
 
