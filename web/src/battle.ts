@@ -10,6 +10,7 @@ interface Explosion {
 }
 
 let Assets = new AssetsLoader({
+  "splash": 'img/splash.png',
   "body": 'img/body.png',
   "body-red": 'img/body-red.png',
   "turret": 'img/turret.png',
@@ -55,11 +56,10 @@ export class Battle {
   title = ""
 
   constructor(
-    ctx: CanvasRenderingContext2D,
     width: number, height: number,
     end_battle: (id: number) => void,
     suspend_battle: (string) => void) {
-    this.ctx = ctx
+    
     this.width = width
     this.height = height
     this.end_battle = end_battle
@@ -67,9 +67,11 @@ export class Battle {
     Battle.battle = this
     Robot.battlefield_height = height
     Robot.battlefield_width = width
+    Assets.loadAll(() => { })
   }
 
-  init(urls: string[]) {
+  init(ctx: CanvasRenderingContext2D, urls: string[]) {
+    this.ctx = ctx
     this.title = urls[0].split("/").pop() + " vs "+urls[1].split("/").pop()
     // calculate appearing position
     let robotAppearPosY = this.height / 2
@@ -100,8 +102,6 @@ export class Battle {
 
     }
 
-    // load resources
-    Assets.loadAll(() => { this.draw() })
   }
 
   completed_request(msg: string, ok: boolean) {
@@ -120,6 +120,7 @@ export class Battle {
   }
 
   draw() {
+    console.log
     this.ctx.clearRect(0, 0, this.width, this.height)
     let newRobots: Robot[] = []
     for (let robot of Battle.robots) {

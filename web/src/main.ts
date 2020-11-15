@@ -1,4 +1,6 @@
 import App from './App.svelte';
+import 'normalize.css/normalize.css';
+import 'milligram/dist/milligram.min.css';
 
 // calculate api server location 
 let apiserver = location.hostname
@@ -15,4 +17,4 @@ const app = new App({
 	props: { "base": "https://"+apiserver+path }
 });
 
-export default app;
+//export default app;

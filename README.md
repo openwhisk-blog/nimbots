@@ -2,6 +2,8 @@
 
 Welcome to Nimbots, a programming game based on Nimbella.
 
+![Nimbots](/web/public/img/splash.png)
+
 You play Nimbots just coding your robot as a serverless action.
 
 Your robot can then fight aginst other robots in the [Nimbots Arena](https://msciabgm-3h6qwxvwpw2-apigcp.nimbella.io/)!
