@@ -147,7 +147,7 @@
             <label for="enemy">Enemy Bot</label>
             <select bind:value={enemyBot} id="enemy">
               <option value="nimbots/BackAndForth">BackAndForth</option>
-              <option value="nimbots/LookingAround">LookingAround</option>
+              <option value="nimbots/LookAround">LookAround</option>
               <option value="nimbots/RandomTurn">RandomTurn</option>
               <option value="nimbots/LookAndShot">LookAndShot</option>
             </select>
