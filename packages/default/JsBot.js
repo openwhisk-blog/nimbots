@@ -1,4 +1,4 @@
-function main(args) {
+function main(args){
     let actions = []
     switch(args.event) {
         case "idle":

@@ -5,7 +5,8 @@ import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 import typescript from '@rollup/plugin-typescript';
-import css from 'rollup-plugin-css-only';
+import postcss from 'rollup-plugin-postcss';
+import monaco from 'rollup-plugin-monaco-editor';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -40,7 +41,8 @@ export default {
 		dir: 'public/build'
 	},
 	plugins: [
-		css({ output: 'public/build/vendor.css' }),
+		//css({ output: 'public/build/vendor.css' }),
+		postcss(),
 		svelte({
 			// enable run-time checks when not in production
 			dev: !production,
@@ -51,7 +53,10 @@ export default {
 			},
 			preprocess: sveltePreprocess(),
 		}),
-
+		monaco({
+			languages: ['json'],
+			pathPrefix: "/build/"
+		}),
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration -
