@@ -21,7 +21,9 @@
   let fighting = false;
   let editing = false;
 
-  let unsubscribeSource
+  let unsubscribeSource =   source.subscribe((value) => {
+      editing = value != "";
+    });
 
   function finish(winner: number) {
     if (winner == -1) {
@@ -105,9 +107,6 @@
     );
     window["Battle"] = Battle;
     image.onload = splash;
-    unsubscribeSource = source.subscribe((value) => {
-      editing = value != "";
-    });
   });
   onDestroy(unsubscribeSource)
 </script>

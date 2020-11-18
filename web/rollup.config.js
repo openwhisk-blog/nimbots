@@ -6,7 +6,6 @@ import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 import typescript from '@rollup/plugin-typescript';
 import postcss from 'rollup-plugin-postcss';
-import monaco from 'rollup-plugin-monaco-editor';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -52,10 +51,6 @@ export default {
 				css.write('bundle.css');
 			},
 			preprocess: sveltePreprocess(),
-		}),
-		monaco({
-			languages: ['javascript', 'python', 'go'],
-			pathPrefix: "/build/"
 		}),
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
