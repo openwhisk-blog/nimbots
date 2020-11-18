@@ -11,7 +11,7 @@
     let parsed = JSON.parse(atob(url.search.substring(7)));
     let cred = parsed["uuid"] + ":" + parsed["key"];
     auth.set(cred);
-    console.log(cred);
+    console.log(parsed);
   }
 
   // calculate api server location

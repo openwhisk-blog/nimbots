@@ -4,7 +4,7 @@
   import "milligram/dist/milligram.min.css";
   import { URL_LOGIN } from "./const";
   import { Battle } from "./battle";
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount, afterUpdate, onDestroy } from "svelte";
   import { inspector, auth, source } from "./store";
   import { log } from "./util";
 
@@ -20,6 +20,8 @@
   let enemyBot: string;
   let fighting = false;
   let editing = false;
+
+  let unsubscribeSource
 
   function finish(winner: number) {
     if (winner == -1) {
@@ -66,30 +68,12 @@
     ctx.drawImage(image, 0, 0);
   }
 
-  onMount(() => {
-    console.log("on mount...");
-    let canvas = document.getElementById("arena") as HTMLCanvasElement;
-    Battle.speed = parseInt(speed);
-    battle = new Battle(
-      parseInt(canvas.getAttribute("width")),
-      parseInt(canvas.getAttribute("height")),
-      finish,
-      suspended
-    );
-    window["Battle"] = Battle;
-    image.onload = splash;
-  });
-
   afterUpdate(() => {
     if (!(editing || fighting)) splash();
   });
 
-  source.subscribe((value) => {
-    editing = value != "";
-  });
-
   function selected() {
-    let urls = [base + "default/"+myBot, base + enemyBot];
+    let urls = [base + "default/" + myBot, base + enemyBot];
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
     battle.init(canvas.getContext("2d"), urls);
@@ -108,6 +92,24 @@
       battle.stop();
     }
   }
+
+  onMount(() => {
+    console.log("on mount...");
+    let canvas = document.getElementById("arena") as HTMLCanvasElement;
+    Battle.speed = parseInt(speed);
+    battle = new Battle(
+      parseInt(canvas.getAttribute("width")),
+      parseInt(canvas.getAttribute("height")),
+      finish,
+      suspended
+    );
+    window["Battle"] = Battle;
+    image.onload = splash;
+    unsubscribeSource = source.subscribe((value) => {
+      editing = value != "";
+    });
+  });
+  onDestroy(unsubscribeSource)
 </script>
 
 <style>

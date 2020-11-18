@@ -54,7 +54,7 @@ export default {
 			preprocess: sveltePreprocess(),
 		}),
 		monaco({
-			languages: ['json'],
+			languages: ['javascript', 'python', 'go'],
 			pathPrefix: "/build/"
 		}),
 		// If you have external dependencies installed from
