@@ -5,7 +5,7 @@
   import { URL_LOGIN } from "./const";
   import { Battle } from "./battle";
   import { onMount, afterUpdate, onDestroy } from "svelte";
-  import { inspector, auth, source } from "./store";
+  import { inspector, auth, source, namespace } from "./store";
   import { log } from "./util";
 
   let battle: Battle;
@@ -21,9 +21,9 @@
   let fighting = false;
   let editing = false;
 
-  let unsubscribeSource =   source.subscribe((value) => {
-      editing = value != "";
-    });
+  let unsubscribeSource = source.subscribe((value) => {
+    editing = value != "";
+  });
 
   function finish(winner: number) {
     if (winner == -1) {
@@ -71,7 +71,7 @@
   }
 
   afterUpdate(() => {
-    if (!(editing || fighting)) splash();
+    if (!(editing || ready)) splash();
   });
 
   function selected() {
@@ -108,7 +108,7 @@
     window["Battle"] = Battle;
     image.onload = splash;
   });
-  onDestroy(unsubscribeSource)
+  onDestroy(unsubscribeSource);
 </script>
 
 <style>
@@ -134,23 +134,21 @@
       </div>
       {#if !ready}
         <div class="row">
-          <div class="column column-50">
-            <label for="mybot">My Robot</label>
-            <select bind:value={myBot} id="enemy">
-              <option value="JsBot">Javascript Robot</option>
-              <option value="PyBot">Python Robot</option>
-              <option value="GoBot">Go Robot</option>
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="column column-50">
-            <label for="enemy">Enemy Bot</label>
+          <div class="column column-25">
+            <label for="enemy">Enemy Robot</label>
             <select bind:value={enemyBot} id="enemy">
               <option value="nimbots/BackAndForth">BackAndForth</option>
               <option value="nimbots/LookAround">LookAround</option>
               <option value="nimbots/RandomTurn">RandomTurn</option>
               <option value="nimbots/LookAndShot">LookAndShot</option>
+            </select>
+          </div>
+          <div class="column column-25">
+            <label for="mybot">My Robot</label>
+            <select bind:value={myBot} id="enemy">
+              <option value="JsBot">Sample Javascript Robot</option>
+              <option value="PyBot">Sample Python Robot</option>
+              <option value="GoBot">Sample Go Robot</option>
             </select>
           </div>
         </div>
@@ -159,17 +157,54 @@
             <button id="done" on:click={selected}>Start the Battle</button>
           </div>
           <div class="column column-25">
-            {#if $auth != ''}
-              <button id="done" on:click={edit}>Edit my Robot</button>
-            {:else}
+            {#if $namespace == ''}
               <button
-                id="done"
+                id="login"
                 on:click={() => {
                   location.href = URL_LOGIN;
-                }}>Login to Nimbella to edit Robots</button>
+                }}>Login to Nimbella</button>
+            {:else}
+              <div class="column column-25">
+                <button id="edit" on:click={edit}>Edit my Robot</button>
+              </div>
             {/if}
           </div>
         </div>
+        {#if $namespace == ''}
+          <div class="row">
+            <p class="column column-50">
+              You need to login to Nimbella to create and edit your robots
+            </p>
+          </div>
+        {:else}
+          <div class="row">
+            <div class="column column-25">
+              <button id="create">Create New Robot</button>
+            </div>
+            <div class="column column-25">
+              <input
+                type="text"
+                placeholder="robot name"
+                id="botname" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="column column-25">
+              <button
+                id="logout"
+                on:click={() => {
+                  location.href = '/';
+                }}>Logout</button>
+            </div>
+            <div class="column column-25">
+              <select id="language">
+                <option value="js">JavaScript</option>
+                <option value="py">Python</option>
+                <option value="go">Golang</option>
+              </select>
+            </div>
+          </div>
+        {/if}
       {:else}
         <div class="row">
           <div class="column column-20">
@@ -183,7 +218,7 @@
               Debug
             </label>
           </div>
-          <div class="column column-20"><a href="/">Reset</a></div>
+          <div class="column column-20"><a href="#" on:click={()=>{ready=false}}>Reset</a></div>
         </div>
         {#if debug}
           <div class="row">
@@ -225,16 +260,16 @@
             (open console)
           </div>
           <div class="row">
-            <div class="column column-50">
-              [MyBot] Sent #{$inspector[0][2]}
+            <div class="column column-25">
+              <b>[MyBot] Sent #{$inspector[0][2]}</b>
               <pre>{$inspector[0][0]}</pre>
-              [MyBot] Received
+              <b>[MyBot] Received</b>
               <pre>{$inspector[0][1]}</pre>
             </div>
-            <div class="column column-50">
-              [Enemy] Sent #{$inspector[1][2]}
+            <div class="column column-25">
+              <b>[Enemy] Sent #{$inspector[1][2]}</b>
               <pre>{$inspector[1][0]}</pre>
-              [Ememy] Received
+              <b>[Ememy] Received</b>
               <pre>{$inspector[1][1]}</pre>
             </div>
           </div>

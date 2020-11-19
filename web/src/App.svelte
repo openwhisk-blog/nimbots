@@ -1,6 +1,6 @@
 <script lang="ts">
   import "normalize.css/normalize.css";
-  import { auth } from "./store";
+  import { auth, namespace } from "./store";
   import Field from "./Field.svelte";
   import Editor from "./Editor.svelte";
   import { source } from "./store";
@@ -11,7 +11,8 @@
     let parsed = JSON.parse(atob(url.search.substring(7)));
     let cred = parsed["uuid"] + ":" + parsed["key"];
     auth.set(cred);
-    console.log(parsed);
+    namespace.set(parsed["namespace"])
+    console.log($namespace);
   }
 
   // calculate api server location

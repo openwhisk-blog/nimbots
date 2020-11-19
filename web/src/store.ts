@@ -5,3 +5,5 @@ export const inspector = writable([["","","0",""],["","", "0",""]])
 export const source = writable("")
 
 export const auth = writable("")
+
+export const namespace = writable("")
