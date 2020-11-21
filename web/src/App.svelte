@@ -16,9 +16,9 @@
       parsed["uuid"] + ":" + parsed["key"],
       parsed["namespace"]
     );
+    window["ow"] = ow;
+    console.log("logged on", ow.namespace);
   }
-  window["ow"] = ow;
-  console.log(ow);
 
   // calculate api server location
   let apiserver = location.hostname;

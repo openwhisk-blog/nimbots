@@ -34,9 +34,9 @@
     }
   }
 
-  async function  save() {
-    let code = await editor.getValue()
-    console.log(code)
+  async function save() {
+    let code = await editor.getValue();
+    //console.log(code);
     ow.save($source, code, true).then(() => {
       source.set("");
     });
@@ -47,9 +47,10 @@
   });
 
   let unsubscribeSource = source.subscribe(async (filename) => {
-    console.log("loading " + filename);
-    let code = await ow.load(filename);
-    editor.setValue(filename, code);
+    if (filename != "") {
+      let code = await ow.load(filename);
+      editor.setValue(filename, code);
+    }
   });
 
   onDestroy(unsubscribeSource);

@@ -149,7 +149,6 @@
   }
 
   onMount(() => {
-    console.log("on mount...");
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
     Battle.speed = parseInt(speed);
     battle = new Battle(
@@ -236,7 +235,7 @@
         {#if ow === undefined}
           <div class="row">
             <p class="column column-50">
-              You need to login to Nimbella to create and edit your robots
+              You need to sign up and login to Nimbella to create and edit your robots.
             </p>
           </div>
         {:else}

@@ -61,6 +61,10 @@ export class OpenWhisk {
         let name = filename.split(".")[0]
         let data = await this.call("actions/" + name + "?code=true")
         //console.log(data)
+        if("error" in data) {
+            return data["error"]
+        }
+        //console.log("load", data)
         return data["exec"]["code"]
     }
 
