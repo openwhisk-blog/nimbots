@@ -1,19 +1,24 @@
 <script lang="ts">
   import "normalize.css/normalize.css";
-  import { auth, namespace } from "./store";
   import Field from "./Field.svelte";
   import Editor from "./Editor.svelte";
   import { source } from "./store";
+  import { OpenWhisk } from "./openwhisk";
 
   // decode login
   let url = new URL(location.href);
+  let ow: OpenWhisk = undefined;
+
   if (url.search.startsWith("?token=")) {
     let parsed = JSON.parse(atob(url.search.substring(7)));
-    let cred = parsed["uuid"] + ":" + parsed["key"];
-    auth.set(cred);
-    namespace.set(parsed["namespace"])
-    console.log($namespace);
+    ow = new OpenWhisk(
+      parsed["apihost"],
+      parsed["uuid"] + ":" + parsed["key"],
+      parsed["namespace"]
+    );
   }
+  window["ow"] = ow;
+  console.log(ow);
 
   // calculate api server location
   let apiserver = location.hostname;
@@ -22,14 +27,14 @@
     // development namespace
     // change this to your own for development
     apiserver = "apigcp.nimbella.io";
-    path = "/api/v1/web/nimbots/";
+    path = "/api/v1/web/";
   }
 
   let base = "https://" + apiserver + path;
 </script>
 
 {#if $source == ''}
-  <Field {base} />
+  <Field {base} {ow} />
 {:else}
-  <Editor />
+  <Editor {ow} />
 {/if}

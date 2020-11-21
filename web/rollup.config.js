@@ -6,6 +6,10 @@ import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 import typescript from '@rollup/plugin-typescript';
 import postcss from 'rollup-plugin-postcss';
+//import json from 'rollup-plugin-json';
+//import globals from 'rollup-plugin-node-globals'
+//import builtins from 'rollup-plugin-node-builtins';
+//import nodePolyfills from 'rollup-plugin-node-polyfills';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -34,13 +38,16 @@ export default {
 	input: 'src/main.ts',
 	output: {
 		sourcemap: true,
-		format: 'es',
+		format: 'iife',
 		name: 'app',
 		//file: 'public/build/bundle.js'
 		dir: 'public/build'
 	},
 	plugins: [
-		//css({ output: 'public/build/vendor.css' }),
+		//nodePolyfills(),
+		//globals(),
+		//builtins(),
+		//json(),
 		postcss(),
 		svelte({
 			// enable run-time checks when not in production
@@ -57,11 +64,11 @@ export default {
 		// some cases you'll need additional configuration -
 		// consult the documentation for details:
 		// https://github.com/rollup/plugins/tree/master/packages/commonjs
+		commonjs(),
 		resolve({
 			browser: true,
 			dedupe: ['svelte']
 		}),
-		commonjs(),
 		typescript({
 			sourceMap: !production,
 			inlineSources: !production

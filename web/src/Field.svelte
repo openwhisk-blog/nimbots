@@ -1,28 +1,78 @@
 <script lang="ts">
-  export let base;
-
   import "milligram/dist/milligram.min.css";
-  import { URL_LOGIN } from "./const";
+  import type { OpenWhisk } from "./openwhisk";
+  import { URL_LOGIN, VERSION } from "./const";
   import { Battle } from "./battle";
   import { onMount, afterUpdate, onDestroy } from "svelte";
-  import { inspector, auth, source, namespace } from "./store";
+  import { inspector, source } from "./store";
   import { log } from "./util";
 
+  export let base: string;
+  export let ow: OpenWhisk;
+
   let battle: Battle;
-  let msg = "Welcome to the battlefield!";
+  let msg = "Battlefield "+VERSION;
   let status = "Select Opponents";
 
   let ready = false;
   let speed = "10";
   let debug = false;
 
-  let myBot: string = "JsBot";
   let enemyBot: string;
   let fighting = false;
   let editing = false;
 
+  let myBot: string = "JsBot";
+  let robotName = "";
+  let robotType = "js";
+  let myBots: string[] = [];
+
+  let robotMap = {
+    js: "/src/JsBot.js",
+    go: "/src/GoBot.go",
+    py: "/src/PyBot.py",
+  };
+  let regex = /^\w{1,60}$/g;
+
+  async function create(): Promise<boolean> {
+    if (!robotName.match(regex)) {
+      alert("Invalid Robot Name");
+      return false;
+    }
+    let bot: string
+    return fetch(robotMap[robotType])
+      .then((data) => {
+        if (data.ok) return data.text();
+        throw data.statusText;
+      })
+      .then((code) => {
+        bot = robotName + "." + robotType
+        return ow.save(bot, code, false);
+      })
+      .then(async (result) => {
+        console.log(result);
+        if ("error" in result) 
+          throw result["error"];
+        source.set(bot)
+        return true;
+      })
+      .catch((err) => {
+        alert(err);
+        return false;
+      });
+  }
+
+  async function updateBots() {
+    if (ow !== undefined) { 
+      myBots = await ow.list();
+      if(myBots.length >0)
+        myBot = myBots[0]
+    }
+  }
+
   let unsubscribeSource = source.subscribe((value) => {
     editing = value != "";
+    updateBots();
   });
 
   function finish(winner: number) {
@@ -55,6 +105,7 @@
   }
 
   function edit() {
+    console.log(myBot)
     source.set(myBot);
     editing = true;
   }
@@ -75,7 +126,9 @@
   });
 
   function selected() {
-    let urls = [base + "default/" + myBot, base + enemyBot];
+    let enemyBase = base + "nimbots/"
+    let myBase = base +  ( myBots.length ==0 ? "nimbots" : ow.namespace) + "/default/"
+    let urls = [myBase + myBot.split(".")[0], enemyBase + enemyBot];
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
     battle.init(canvas.getContext("2d"), urls);
@@ -105,6 +158,7 @@
       finish,
       suspended
     );
+    updateBots();
     window["Battle"] = Battle;
     image.onload = splash;
   });
@@ -146,9 +200,15 @@
           <div class="column column-25">
             <label for="mybot">My Robot</label>
             <select bind:value={myBot} id="enemy">
-              <option value="JsBot">Sample Javascript Robot</option>
-              <option value="PyBot">Sample Python Robot</option>
-              <option value="GoBot">Sample Go Robot</option>
+              {#if myBots.length == 0}
+                <option value="JsBot">Sample Javascript Robot</option>
+                <option value="PyBot">Sample Python Robot</option>
+                <option value="GoBot">Sample Go Robot</option>
+              {:else}
+                {#each myBots as bot}
+                  <option value={bot}>{bot.split('.')[0]}</option>
+                {/each}
+              {/if}
             </select>
           </div>
         </div>
@@ -157,7 +217,7 @@
             <button id="done" on:click={selected}>Start the Battle</button>
           </div>
           <div class="column column-25">
-            {#if $namespace == ''}
+            {#if ow === undefined}
               <button
                 id="login"
                 on:click={() => {
@@ -165,12 +225,15 @@
                 }}>Login to Nimbella</button>
             {:else}
               <div class="column column-25">
-                <button id="edit" on:click={edit}>Edit my Robot</button>
+                <button
+                  id="edit"
+                  on:click={edit}
+                  disabled={myBots.length == 0}>Edit my Robot</button>
               </div>
             {/if}
           </div>
         </div>
-        {#if $namespace == ''}
+        {#if ow === undefined}
           <div class="row">
             <p class="column column-50">
               You need to login to Nimbella to create and edit your robots
@@ -179,11 +242,12 @@
         {:else}
           <div class="row">
             <div class="column column-25">
-              <button id="create">Create New Robot</button>
+              <button id="create" on:click={create}>Create New Robot</button>
             </div>
             <div class="column column-25">
               <input
                 type="text"
+                bind:value={robotName}
                 placeholder="robot name"
                 id="botname" />
             </div>
@@ -197,7 +261,7 @@
                 }}>Logout</button>
             </div>
             <div class="column column-25">
-              <select id="language">
+              <select bind:value={robotType}>
                 <option value="js">JavaScript</option>
                 <option value="py">Python</option>
                 <option value="go">Golang</option>
@@ -212,13 +276,20 @@
               {#if fighting}Suspend{:else}Fight!{/if}
             </button>
           </div>
-          <div class="column column-20">
+          <div class="column column-10">
             <label>
               <input type="checkbox" bind:checked={debug} />
               Debug
             </label>
           </div>
-          <div class="column column-20"><a href="#" on:click={()=>{ready=false}}>Reset</a></div>
+          <div class="column column-20">
+            <button
+              on:click={() => {
+                ready = false;
+                fighting = false;
+                battle.stop();
+              }}>Stop</button>
+          </div>
         </div>
         {#if debug}
           <div class="row">
@@ -260,13 +331,11 @@
             (open console)
           </div>
           <div class="row">
-            <div class="column column-25">
+            <div class="column column-50">
               <b>[MyBot] Sent #{$inspector[0][2]}</b>
               <pre>{$inspector[0][0]}</pre>
               <b>[MyBot] Received</b>
               <pre>{$inspector[0][1]}</pre>
-            </div>
-            <div class="column column-25">
               <b>[Enemy] Sent #{$inspector[1][2]}</b>
               <pre>{$inspector[1][0]}</pre>
               <b>[Ememy] Received</b>

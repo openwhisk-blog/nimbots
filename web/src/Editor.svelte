@@ -1,72 +1,79 @@
 <script lang="ts">
   import Doc from "./Doc.svelte";
   import { onDestroy, onMount } from "svelte";
-  import { source, auth } from "./store";
+  import { source } from "./store";
   import { URL_GET } from "./const";
+  import type { OpenWhisk } from "./openwhisk";
+
+  export let ow: OpenWhisk;
 
   interface Editor extends Window {
-    setValue: (string) => void
-    getValue:  () => string
+    setValue: (filename: string, code: string) => void;
+    getValue: () => string;
   }
-  
-  let editor : Editor 
+
+  let editor: Editor;
 
   function warn(err) {
     alert(err);
   }
 
-  async function retrieve(action) {
-    if (action == "") return;
-    let opts = {
-      method: "GET",
-      headers: { Authorization: "Basic " + btoa($auth) },
-    };
-    //console.log(opts);
-    fetch(URL_GET + $source, opts)
-      .then((resp) => {
-        //console.log(resp)
-        if (resp.ok) return resp.json();
-        return fetch("/" + $source)
-          .then((resp) => {
-            if (!resp.ok) throw resp.statusText;
-            return resp.text();
-          })
-          .then((text) => {
-            return { code: text };
-          })
-          .catch(warn);
-      })
-      .then((json) => {
-        if (json.code) {
-          editor.setValue(json.code)
-          return;
-        } else {
-          console.log(json);
-          warn("no code");
-        }
-      })
-      .catch(warn);
+  function cancel() {
+    if (confirm("Are you sure you want to lose your changes?")) {
+      editor.setValue("", "");
+      source.set("");
+    }
   }
 
-  function done() {
-    editor.setValue("")
-    source.set("");
+  function del() {
+    if (confirm("Are you sure you want to delete this Robot?")) {
+      ow.del($source).then(() => {
+        editor.setValue("", "");
+        source.set("");
+      });
+    }
+  }
+
+  async function  save() {
+    let code = await editor.getValue()
+    console.log(code)
+    ow.save($source, code, true).then(() => {
+      source.set("");
+    });
   }
 
   onMount(() => {
-    editor = window.frames[0] as Editor
-  })
-  let unsubscribeSource = source.subscribe(retrieve);
+    editor = window.frames[0] as Editor;
+  });
+
+  let unsubscribeSource = source.subscribe(async (filename) => {
+    console.log("loading " + filename);
+    let code = await ow.load(filename);
+    editor.setValue(filename, code);
+  });
+
   onDestroy(unsubscribeSource);
 </script>
+
 <main class="wrapper">
   <section class="container">
-    <h2>Edit your Robot</h2>
-    <iframe title="editor" id="editor" src="editor.html" style='height: 600px; width: 100%;' frameborder="0" scrolling="no" />
-    <div class="row"><button id="done" on:click={done}>Done</button></div>
+    <h2>{$source}</h2>
+    <iframe
+      title="editor"
+      id="editor"
+      src="editor.html"
+      style="height: 500px; width: 100%;"
+      frameborder="0"
+      scrolling="no" />
     <div class="row">
-      <Doc/>
-    </div> 
+      <button id="done" on:click={save}>Save</button>
+      &nbsp;
+      <button id="done" on:click={cancel}>Cancel</button>
+      &nbsp;
+      <button id="done" on:click={del}>Delete</button>
+    </div>
+    <div class="row">
+      <Doc />
+    </div>
   </section>
 </main>
-

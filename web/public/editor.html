@@ -1,43 +1,66 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-		<style type="text/css">
-			html,
-			body {
-				width: 100%;
-				height: 100%;
-				margin: 0;
-				padding: 0;
-				overflow: hidden;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="container" style="width: 100%; height: 100%"></div>
-		<script src="/monaco-editor/min/vs/loader.js"></script>
-		<script>			
-			require.config({ paths: { vs: '/monaco-editor/min/vs' } });
-			var editorPromise = new Promise(function(resolve) {
-				require(['vs/editor/editor.main'], function () {
-					var editor = monaco.editor.create(document.getElementById('container'), {
-						value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
-						language: 'javascript'
-					});
-					window.onresize = function () {
-						editor.layout();
-					};
-					resolve(editor) 
-				});
-			})
-			async function setValue(text) {
-				let editor = await editorPromise
-				editor.setValue(text)
-			}
-			async function getValue() {
-				let editor = await editorPromise
-				return editor.getValue()
-			}
-		</script>
-	</body>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <style type="text/css">
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container" style="width: 100%; height: 100%"></div>
+    <script src="/monaco-editor/min/vs/loader.js"></script>
+    <script>
+      require.config({ paths: { vs: "/monaco-editor/min/vs" } });
+      let editorPromise = new Promise(function (resolve) {
+        require(["vs/editor/editor.main"], function () {
+          var editor = monaco.editor.create(
+            document.getElementById("container"),
+            {
+              value: [
+                "function main(args) {",
+                '  return { "body": "Hello world!" };',
+                "}",
+              ].join("\n"),
+              language: "javascript",
+            }
+          );
+          window.onresize = function () {
+            editor.layout();
+          };
+          resolve(editor);
+        });
+      });
+      async function setValue(filename, text) {
+        let editor = await editorPromise;
+        editor.setValue(text);
+        let model = editor.getModel();
+        switch (filename.split(".").pop()) {
+          case "js":
+            monaco.editor.setModelLanguage(model, "javascript");
+            break;
+          case "py":
+            monaco.editor.setModelLanguage(model, "python");
+            break;
+          case "go":
+            monaco.editor.setModelLanguage(model, "go");
+            break;
+          default:
+            monaco.editor.setModelLanguage(model, "");
+            console.log("unknown language");
+            break;
+        }
+      }
+      async function getValue() {
+        let editor = await editorPromise;
+        return editor.getValue();
+      }
+    </script>
+  </body>
 </html>

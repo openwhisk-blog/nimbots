@@ -16,7 +16,7 @@ function main(args){
             actions.push({"yell": "Fire!", "shoot":true})
             break
         default:
-            console.log("unexpectd event", args)
+            console.log(args)
     }
     return { "body": actions}
 }
