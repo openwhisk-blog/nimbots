@@ -11,7 +11,7 @@
   export let ow: OpenWhisk;
 
   let battle: Battle;
-  let msg = "Battlefield "+VERSION;
+  let msg = "Welcome to the battlefield"
   let status = "Select Opponents";
 
   let ready = false;
@@ -244,7 +244,7 @@
         {#if ow === undefined}
           <div class="row">
             <p class="column column-50">
-              You need to sign up and login to Nimbella to create and edit your robots.
+              This is <b>Nimbots</b> v{VERSION} <a href="https://github.com/openwhisk-blog/nimbots">[GitHub]</a>. Please sign up and login to <a href="https://www.nimbella.com">Nimbella</a> to create and edit your robots.<br>
             </p>
           </div>
         {:else}
