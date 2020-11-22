@@ -51,21 +51,31 @@
 
 <main class="wrapper">
   <section class="container">
-    <h2>{$source}</h2>
-    <iframe
-      on:load={init}
-      title="editor"
-      id="editor"
-      src="editor.html"
-      style="height: 500px; width: 100%;"
-      frameborder="0"
-      scrolling="no" />
     <div class="row">
-      <button id="done" on:click={save}>Save</button>
-      &nbsp;
-      <button id="done" on:click={cancel}>Cancel</button>
-      &nbsp;
-      <button id="done" on:click={del}>Delete</button>
+      <iframe
+        on:load={init}
+        title="editor"
+        id="editor"
+        src="editor.html"
+        style="height: 500px; width: 100%;"
+        frameborder="0"
+        scrolling="no" />
+    </div>
+    <br />
+    <div class="clearfix">
+      <!-- Float either directions -->
+      <div class="float-left">
+        <button id="done" on:click={save}>Save</button>
+        &nbsp;
+        <button id="done" on:click={cancel}>Cancel</button>
+        &nbsp;
+        <button id="done" on:click={del}>Delete</button>
+      </div>
+      <div class="float-right">
+        <h3>
+          <tt>{$source}</tt>
+        </h3>
+      </div>
     </div>
     <div class="row">
       <Doc />
