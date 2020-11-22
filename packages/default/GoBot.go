@@ -27,8 +27,8 @@ func Main(args map[string]interface{}) map[string]interface{} {
 		})
 	case "enemy-spot":
 		res = append(res, map[string]interface{}{
-			"yell": "Fire",
-			"shot": true,
+			"yell":  "Fire",
+			"shoot": true,
 		})
 	default:
 		fmt.Printf("%v\n", args)

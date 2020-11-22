@@ -169,6 +169,15 @@
     border: 1px solid grey;
     float: left;
   }
+
+  #blue {
+    background-color: lightgrey;
+    color: blue;
+  }
+  #red {
+    background-color: lightgrey;
+    color: red;
+  }
 </style>
 
 <main class="wrapper">
@@ -263,9 +272,7 @@
               <select bind:value={robotType}>
                 <option value="js">JavaScript</option>
                 <option value="py">Python</option>
-                <!--
                 <option value="go">Golang</option>
-                -->
               </select>
             </div>
           </div>
@@ -276,20 +283,23 @@
             <button id="fight" on:click={toggle}>
               {#if fighting}Suspend{:else}Fight!{/if}
             </button>
-          </div>
-          <div class="column column-10">
-            <label>
-              <input type="checkbox" bind:checked={debug} />
-              Debug
-            </label>
-          </div>
-          <div class="column column-20">
+            <br>
             <button
               on:click={() => {
                 ready = false;
                 fighting = false;
                 battle.stop();
               }}>Stop</button>
+          </div>
+          <div class="column column-20">
+            <tt>Mine:&nbsp;&nbsp;<span id="blue">blue robot</span></tt><br>
+            <tt>Enemy:&nbsp;<span id="red">red robot</span></tt>
+          </div>
+          <div class="column column-10">
+            <label>
+              <input type="checkbox" bind:checked={debug} />
+              Debug
+            </label>
           </div>
         </div>
         {#if debug}
