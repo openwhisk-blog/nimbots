@@ -263,7 +263,9 @@
               <select bind:value={robotType}>
                 <option value="js">JavaScript</option>
                 <option value="py">Python</option>
+                <!--
                 <option value="go">Golang</option>
+                -->
               </select>
             </div>
           </div>

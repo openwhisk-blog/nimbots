@@ -2,7 +2,6 @@
   import Doc from "./Doc.svelte";
   import { onDestroy, onMount } from "svelte";
   import { source } from "./store";
-  import { URL_GET } from "./const";
   import type { OpenWhisk } from "./openwhisk";
 
   export let ow: OpenWhisk;
@@ -12,7 +11,14 @@
     getValue: () => string;
   }
 
-  let editor: Editor;
+  let editor: Editor = undefined;
+
+  async function init() {
+    editor = window.frames[0] as Editor;
+    let filename = $source;
+    let code = await ow.load(filename);
+    editor.setValue(filename, code);
+  }
 
   function warn(err) {
     alert(err);
@@ -41,25 +47,13 @@
       source.set("");
     });
   }
-
-  onMount(() => {
-    editor = window.frames[0] as Editor;
-  });
-
-  let unsubscribeSource = source.subscribe(async (filename) => {
-    if (filename != "") {
-      let code = await ow.load(filename);
-      editor.setValue(filename, code);
-    }
-  });
-
-  onDestroy(unsubscribeSource);
 </script>
 
 <main class="wrapper">
   <section class="container">
     <h2>{$source}</h2>
     <iframe
+      on:load={init}
       title="editor"
       id="editor"
       src="editor.html"

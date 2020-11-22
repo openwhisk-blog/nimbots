@@ -21,15 +21,8 @@
   }
 
   // calculate api server location
-  let apiserver = location.hostname;
-  let path = "/api/";
-  if (location.hostname == "localhost") {
-    // development namespace
-    // change this to your own for development
-    apiserver = "apigcp.nimbella.io";
-    path = "/api/v1/web/";
-  }
-
+  let apiserver = "apigcp.nimbella.io"
+  let path = "/api/v1/web/";
   let base = "https://" + apiserver + path;
 </script>
 

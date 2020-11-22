@@ -2,6 +2,7 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <style type="text/css">
       html,
       body {
@@ -18,47 +19,39 @@
     <script src="/monaco-editor/min/vs/loader.js"></script>
     <script>
       require.config({ paths: { vs: "/monaco-editor/min/vs" } });
-      let editorPromise = new Promise(function (resolve) {
-        require(["vs/editor/editor.main"], function () {
-          var editor = monaco.editor.create(
-            document.getElementById("container"),
-            {
-              value: [
-                "function main(args) {",
-                '  return { "body": "Hello world!" };',
-                "}",
-              ].join("\n"),
-              language: "javascript",
-            }
-          );
-          window.onresize = function () {
-            editor.layout();
-          };
-          resolve(editor);
+      async function createEditor(value, language) {
+        return new Promise(function (resolve) {
+          require(["vs/editor/editor.main"], function () {
+            var editor = monaco.editor.create(
+              document.getElementById("container"),
+              {
+                value: value,
+                language: language,
+              }
+            );
+            window.onresize = function () {
+              editor.layout();
+            };
+            resolve(editor);
+          });
         });
-      });
+      }
+      let lmap = {
+        py: "python",
+        go: "go",
+        js: "javascript",
+      };
+      let editor = undefined;
       async function setValue(filename, text) {
-        let editor = await editorPromise;
-        editor.setValue(text);
-        let model = editor.getModel();
-        switch (filename.split(".").pop()) {
-          case "js":
-            monaco.editor.setModelLanguage(model, "javascript");
-            break;
-          case "py":
-            monaco.editor.setModelLanguage(model, "python");
-            break;
-          case "go":
-            monaco.editor.setModelLanguage(model, "go");
-            break;
-          default:
-            monaco.editor.setModelLanguage(model, "");
-            console.log("unknown language");
-            break;
-        }
+        let ext = filename.split(".").pop();
+        let lang = ext in lmap ? lmap[ext] : "unknown";
+        editor = await createEditor(text, lang);
       }
       async function getValue() {
-        let editor = await editorPromise;
+        if (editor === undefined) {
+          console.log("editor not ready - use setValue first");
+          return "";
+        }
         return editor.getValue();
       }
     </script>
