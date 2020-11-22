@@ -156,8 +156,11 @@ export class Robot {
       "method": 'POST',
       "headers": { 'Content-Type': 'application/json' },
       "body": json
-    }).then(response => response.text()
-    ).then((json) => {
+    }).then(response => {
+      if(response.ok)
+        return response.text()
+      throw "Broken Robot Controller"
+    }).then((json) => {
       //console.log(json)  
       this.waiting_for_response = false
       let newEvents = []
@@ -174,7 +177,7 @@ export class Robot {
     }).catch((err) => {
       this.waiting_for_response = false
       console.log(err)
-      this.completed_request("Server error.", false)
+      this.completed_request("ERROR: "+err, false)
       return false
     })
   }

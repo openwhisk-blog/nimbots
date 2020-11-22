@@ -3,6 +3,7 @@
   import { onDestroy, onMount } from "svelte";
   import { source } from "./store";
   import type { OpenWhisk } from "./openwhisk";
+  import { rumbleSave, rumbleDelete } from './rumble'
 
   export let ow: OpenWhisk;
 
@@ -31,12 +32,13 @@
     }
   }
 
-  function del() {
+  async function del() {
     if (confirm("Are you sure you want to delete this Robot?")) {
       ow.del($source).then(() => {
         editor.setValue("", "");
         source.set("");
       });
+      await rumbleDelete(`${ow.namespace}:${$source}`)
     }
   }
 
@@ -46,6 +48,7 @@
     ow.save($source, code, true).then(() => {
       source.set("");
     });
+    await rumbleSave(`${ow.namespace}:${$source}`, code)
   }
 </script>
 

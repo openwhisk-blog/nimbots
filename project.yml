@@ -1,8 +1,18 @@
 bucket:
   strip: 1
 packages:
-   - name: default
-     actions:
-        - name: GoBot
-          web: true
-          runtime: go:1.12
+  - name: default
+    actions:
+      - name: GoBot
+        web: true
+        runtime: go:1.12
+  - name: rumble
+    actions:
+      - name: show
+        web: false
+        limits:
+          timeout: 10000
+      - name: register
+        web: true
+        limits:
+          timeout: 10000

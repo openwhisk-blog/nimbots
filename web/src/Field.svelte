@@ -190,7 +190,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="column column-40 column-offset-5">
+        <div class="column column-50 column-offset-5">
           <h3>{status}</h3>
         </div>
       </div>
@@ -308,39 +308,41 @@
               <button id="step" on:click={trace}>Fight one round</button>
             </div>
             <div class="column column-25">
-              <label for="enemy">Battle Speed</label>
-              <select
-                bind:value={speed}
-                on:blur={() => {
-                  Battle.speed = parseInt(speed);
-                }}>
-                <option value="5">Very Fast</option>
-                <option value="10">Fast</option>
-                <option value="25">Normal</option>
-                <option value="50">Slow</option>
-                <option value="100">Very Slow</option>
-              </select>
+              Trace:&nbsp;
+              <label>
+                <input type="checkbox" bind:checked={log.eventOn} />
+                Events&nbsp;
+              </label>
+              <label>
+                <input type="checkbox" bind:checked={log.requestOn} />
+                Requests&nbsp;
+              </label>
+              <label>
+                <input type="checkbox" bind:checked={log.actionOn} />
+                Actions&nbsp;
+              </label>
+              (open console)  
             </div>
           </div>
+          <!--
           <div class="row">
             If your bot plays too fast, the battle will be suspended!
           </div>
           <div class="row">
-            Trace:&nbsp;
-            <label>
-              <input type="checkbox" bind:checked={log.eventOn} />
-              Events&nbsp;
-            </label>
-            <label>
-              <input type="checkbox" bind:checked={log.requestOn} />
-              Requests&nbsp;
-            </label>
-            <label>
-              <input type="checkbox" bind:checked={log.actionOn} />
-              Actions&nbsp;
-            </label>
-            (open console)
+            <label for="enemy">Battle Speed</label>
+            <select
+              bind:value={speed}
+              on:blur={() => {
+                Battle.speed = parseInt(speed);
+              }}>
+              <option value="5">Very Fast</option>
+              <option value="10">Fast</option>
+              <option value="25">Normal</option>
+              <option value="50">Slow</option>
+              <option value="100">Very Slow</option>
+            </select>
           </div>
+          -->
           <div class="row">
             <div class="column column-50">
               <b>[MyBot] Sent #{$inspector[0][2]}</b>

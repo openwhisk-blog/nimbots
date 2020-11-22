@@ -4,3 +4,4 @@ if(location.hostname == "localhost")
 
 export const VERSION = "0.7-alpha"
 export const URL_LOGIN = "https://apigcp.nimbella.io/api/v1/web/nimbella/user/login?provider=&redirect="+redirect
+export const URL_REGISTER = "https://apigcp.nimbella.io/api/v1/web/nimbots/rumble/register"

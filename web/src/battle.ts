@@ -99,9 +99,7 @@ export class Battle {
         if (r.id != rr.id)
           enemies.push(r)
       rr.init(enemies)
-
     }
-
   }
 
   completed_request(msg: string, ok: boolean) {
