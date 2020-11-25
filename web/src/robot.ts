@@ -1,5 +1,6 @@
-import { log, degrees2radians, radians2degrees, inRect, euclidDistance } from './util'
+import { degrees2radians, radians2degrees, inRect, euclidDistance } from './calc'
 import { inspector } from './store'
+import { log } from './util'
 
 export const HP = 5
 const BULLET_SPEED = 3
@@ -69,6 +70,7 @@ export class Robot {
 
   is_hit = false
   is_yell = false
+  is_spot = false
   yell_ts = 0
   yell_msg = undefined
   bullet_ts = 0
@@ -340,6 +342,7 @@ export class Robot {
     let processed = false
     loop: for (let event of this.events) {
       if (event.progress < event.amount) {
+        //console.log("keeping", event.action)
         newEvents.push(event)
       } else {
         //console.log("dropping", event.action)
@@ -391,10 +394,17 @@ export class Robot {
     }
     this.events = newEvents
 
+    if(!this.is_spot && this.check_enemy_spot()) {
+      this.is_spot = true
+      console.log("spotted!")
+    }
+
     if (!this.waiting_for_response) {
     
       // check if spotted enemy
-      if (this.check_enemy_spot()) {
+      if (this.is_spot) {
+        console.log("sending spot")
+        this.is_spot = false
         await this.send_event("enemy-spot")
         return
       }
@@ -431,7 +441,8 @@ export class Robot {
     "turn_turret_left",
     "turn_turret_right",
     "yell",
-    "shoot"
+    "shoot",
+    "data"
   ]
 
   checkEvent(event: object) {
@@ -475,7 +486,7 @@ export class Robot {
       // short form
       if ("data" in event) {
         res.push({
-          "action": "state",
+          "action": "data",
           "data": event["data"],
           "amount": 1
         })

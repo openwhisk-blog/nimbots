@@ -1,5 +1,7 @@
 import { Robot, HP } from './robot'
-import { log, AssetsLoader, degrees2radians } from './util'
+import { log, AssetsLoader,  } from './util'
+import { degrees2radians } from './calc'
+
 
 const YELL_TIMEOUT = 50
 
