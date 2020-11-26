@@ -1,27 +1,50 @@
-import { inspector } from './store'
-import { log } from './util'
 
 export const HP = 5
-const BULLET_SPEED = 3
-const MAX_BULLET = 5
-const BULLET_INTERVAL = 50
-const ROBOT_RADIUS = 10
 
 export function degrees2radians(degrees: number): number {
-  return degrees * (Math.PI/180)
+  return degrees * (Math.PI / 180)
 }
 
 export function radians2degrees(radians: number): number {
-  return radians * (180/Math.PI)
+  return radians * (180 / Math.PI)
 }
 
-export function euclidDistance(x1:number, y1:number, x2:number, y2:number): number {
-return  Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+export function euclidDistance(x1: number, y1: number, x2: number, y2: number): number {
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
 }
 
-export function inRect(x1:number, y1:number, x2:number, y2:number, width: number, height: number) {
-  return (x2+width) > x1 && x1 > x2 && (y2+height) > y1 && y1 > y2
+export function inRect(x1: number, y1: number, x2: number, y2: number, width: number, height: number) {
+  return (x2 + width) > x1 && x1 > x2 && (y2 + height) > y1 && y1 > y2
 }
+
+
+class Logger {
+
+  requestOn: false
+  request(...args: any[]) {
+    if (this.requestOn)
+      console.log("request:", ...args)
+  }
+
+  actionOn: false
+  action(...args: any[]) {
+    if (this.actionOn)
+      console.log("action:", ...args)
+  }
+
+  eventOn: false
+  event(...args: any[]) {
+    if (this.eventOn)
+      console.log("event:", ...args)
+  }
+}
+
+export let log = new Logger()
+
+const BULLET_SPEED = 3
+const MAX_BULLET = 5
+const BULLET_INTERVAL = 50
+const ROBOT_RADIUS = 25
 
 interface Event {
   action?: string
@@ -62,7 +85,6 @@ interface Info {
 }
 
 export class Robot {
-
   static battlefield_width: number = 0
   static battlefield_height: number = 0
 
@@ -71,9 +93,9 @@ export class Robot {
   id: number = 0
   hp: number = HP
 
-  tank_angle: number = Math.random() * 360
+  tank_angle: number = 0// Math.random() * 360
   turret_angle: number = Math.random() * 360
-  radar_angle: number = Math.random() * 360
+  radar_angle: number = this.turret_angle; //Math.random() * 360
   event_counter: number = 0
 
   events: Event[] = []
@@ -101,6 +123,7 @@ export class Robot {
 
   completed_request: (msg: string, ok: boolean) => void
   hit_robot: (x: number, y: number) => void
+  inspect: (id: number, counter: number, request: string, response: string) => void = function() {}
 
   constructor(x: number, y: number, url: string,
     completed_request: (msg: string, ok: boolean) => void,
@@ -158,15 +181,11 @@ export class Robot {
     this.yell_msg = msg
   }
 
+
   async send(msg: object): Promise<boolean> {
     let json = JSON.stringify(msg, null, 2)
     ++this.event_counter
-    inspector.update((info) => {
-      info[this.id][0] = json;
-      info[this.id][2] = "" + this.event_counter;
-      info[this.id][3] = JSON.stringify(this.events, null, 2)
-      return info
-    })
+    this.inspect(this.id, this.event_counter, json, undefined)
     log.event(msg)
     this.waiting_for_response = true
     return fetch(this.url, {
@@ -174,7 +193,7 @@ export class Robot {
       "headers": { 'Content-Type': 'application/json' },
       "body": json
     }).then(response => {
-      if(response.ok)
+      if (response.ok)
         return response.text()
       throw "Broken Robot Controller"
     }).then((json) => {
@@ -194,7 +213,7 @@ export class Robot {
     }).catch((err) => {
       this.waiting_for_response = false
       console.log(err)
-      this.completed_request("ERROR: "+err, false)
+      this.completed_request("ERROR: " + err, false)
       return false
     })
   }
@@ -203,10 +222,10 @@ export class Robot {
     return this.send({
       "event": event,
       "energy": this.hp,
-      "x": this.me.x,
-      "y": this.me.y,
-      "tank_angle": this.tank_angle,
-      "turret_angle": this.turret_angle,
+      "x": Math.floor(this.me.x),
+      "y": Math.floor(this.me.y),
+      "tank_angle": Math.floor(this.tank_angle),
+      "turret_angle": Math.floor(this.turret_angle),
       "enemy_spot": this.enemy_spot,
       "data": this.data
     })
@@ -239,11 +258,11 @@ export class Robot {
           enemy_position_degrees = 360 + enemy_position_degrees
         this.enemy_spot = {
           //id: enemy_robot.id, 
-          x: enemy_robot.x, 
-          y: enemy_robot.y, 
-          angle: enemy_position_degrees, 
-          distance: distance, 
-          energy: enemy_robot.hp, 
+          x: Math.floor(enemy_robot.x),
+          y: Math.floor(enemy_robot.y),
+          angle: Math.floor(enemy_position_degrees),
+          distance: Math.floor(distance),
+          energy: enemy_robot.hp,
         }
         is_spot = true
       }
@@ -409,13 +428,14 @@ export class Robot {
     }
     this.events = newEvents
 
-    if(!this.is_spot && this.check_enemy_spot()) {
+    // check if we spotted the enemy
+    if (!this.is_spot && this.check_enemy_spot()) {
       this.is_spot = true
       console.log("spotted!")
     }
 
     if (!this.waiting_for_response) {
-    
+
       // check if spotted enemy
       if (this.is_spot) {
         console.log("sending spot")
@@ -468,11 +488,10 @@ export class Robot {
     return ""
   }
 
+
   decode(json: string): Event[] {
     let data: Event | Array<Event> = JSON.parse(json)
-    inspector.update((info) => {
-      info[this.id][1] = JSON.stringify(data, null, 2); return info
-    })
+    this.inspect(this.id, this.event_counter, undefined, JSON.stringify(data, null, 2))
     let events: Event[]
     let res: Event[] = []
     if (data instanceof Event) {

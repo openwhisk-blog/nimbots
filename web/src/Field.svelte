@@ -2,20 +2,20 @@
   import "milligram/dist/milligram.min.css";
   import type { OpenWhisk } from "./openwhisk";
   import { URL_LOGIN, VERSION } from "./const";
-  import { Battle } from "./battle";
+  import { BattleWeb } from "./battleweb";
   import { onMount, afterUpdate, onDestroy } from "svelte";
   import { inspector, source } from "./store";
-  import { log } from "./util";
+  import { log } from "./robot";
 
   export let base: string;
   export let ow: OpenWhisk;
 
-  let battle: Battle;
-  let msg = "Welcome to the battlefield"
+  let battle: BattleWeb;
+  let msg = "Welcome to the battlefield";
   let status = "Select Opponents";
 
   let ready = false;
-  let speed = "10";
+  let speed = BattleWeb.speed;
   let debug = false;
 
   let enemyBot: string;
@@ -39,21 +39,20 @@
       alert("Invalid Robot Name");
       return false;
     }
-    let bot: string
+    let bot: string;
     return fetch(robotMap[robotType])
       .then((data) => {
         if (data.ok) return data.text();
         throw data.statusText;
       })
       .then((code) => {
-        bot = robotName + "." + robotType
+        bot = robotName + "." + robotType;
         return ow.save(bot, code, false);
       })
       .then(async (result) => {
         console.log(result);
-        if ("error" in result) 
-          throw result["error"];
-        source.set(bot)
+        if ("error" in result) throw result["error"];
+        source.set(bot);
         return true;
       })
       .catch((err) => {
@@ -63,10 +62,9 @@
   }
 
   async function updateBots() {
-    if (ow !== undefined) { 
+    if (ow !== undefined) {
       myBots = await ow.list();
-      if(myBots.length >0)
-        myBot = myBots[0]
+      if (myBots.length > 0) myBot = myBots[0];
     }
   }
 
@@ -88,8 +86,8 @@
     fighting = false;
     battle.stop();
     inspector.set([
-      ["", "", "0", ""],
-      ["", "", "0", ""],
+      { n: 0, req: "", res: "" },
+      { n: 0, req: "", res: "" },
     ]);
   }
 
@@ -105,8 +103,9 @@
   }
 
   function edit() {
-    console.log(myBot)
+    console.log(myBot);
     source.set(myBot);
+    battle.stop()
     editing = true;
   }
 
@@ -126,15 +125,17 @@
   });
 
   function selected() {
-    let enemyBase = base + "nimbots/"
-    let myBase = base +  ( myBots.length ==0 ? "nimbots" : ow.namespace) + "/default/"
+    let enemyBase = base + "nimbots/";
+    let myBase =
+      base + (myBots.length == 0 ? "nimbots" : ow.namespace) + "/default/";
     let urls = [myBase + myBot.split(".")[0], enemyBase + enemyBot];
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
-    battle.init(canvas.getContext("2d"), urls);
+    battle.webinit(canvas.getContext("2d"), urls);
     ready = true;
     msg = "Nimbots assembled!";
     status = "Ready to fight.";
+    battle.draw();
   }
 
   function toggle() {
@@ -150,15 +151,13 @@
 
   onMount(() => {
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
-    Battle.speed = parseInt(speed);
-    battle = new Battle(
+    battle = new BattleWeb(
       parseInt(canvas.getAttribute("width")),
       parseInt(canvas.getAttribute("height")),
       finish,
       suspended
     );
     updateBots();
-    window["Battle"] = Battle;
     image.onload = splash;
   });
   onDestroy(unsubscribeSource);
@@ -244,7 +243,13 @@
         {#if ow === undefined}
           <div class="row">
             <p class="column column-50">
-              This is <b>Nimbots</b> v{VERSION} <a href="https://github.com/openwhisk-blog/nimbots">[GitHub]</a>. Please sign up and login to <a href="https://www.nimbella.com">Nimbella</a> to create and edit your robots.<br>
+              This is
+              <b>Nimbots</b>
+              v{VERSION}
+              <a href="https://github.com/openwhisk-blog/nimbots">[GitHub]</a>.
+              Please sign up and login to
+              <a href="https://www.nimbella.com">Nimbella</a>
+              to create and edit your robots.<br />
             </p>
           </div>
         {:else}
@@ -283,22 +288,30 @@
             <button id="fight" on:click={toggle}>
               {#if fighting}Suspend{:else}Fight!{/if}
             </button>
-            <br>
+            <br />
             <button
               on:click={() => {
                 ready = false;
                 fighting = false;
                 battle.stop();
-              }}>Stop</button>
+              }}>Stop</button><br />
+              <button
+                id="edit"
+                on:click={edit}
+                disabled={myBots.length == 0}>Edit</button>
+           
           </div>
           <div class="column column-20">
-            <tt>Mine:&nbsp;&nbsp;<span id="blue">blue robot</span></tt><br>
+            <tt>Mine:&nbsp;&nbsp;<span id="blue">blue robot</span></tt><br />
             <tt>Enemy:&nbsp;<span id="red">red robot</span></tt>
           </div>
           <div class="column column-10">
             <label>
               <input type="checkbox" bind:checked={debug} />
-              Debug
+              Debug<br />
+              <a
+                href="https://apigcp.nimbella.io/wb/?command=activation+list"
+                target="workbench">Logs</a>
             </label>
           </div>
         </div>
@@ -321,7 +334,7 @@
                 <input type="checkbox" bind:checked={log.actionOn} />
                 Actions&nbsp;
               </label>
-              (open console)  
+              (open console)
             </div>
           </div>
           <!--
@@ -345,14 +358,14 @@
           -->
           <div class="row">
             <div class="column column-50">
-              <b>[MyBot] Sent #{$inspector[0][2]}</b>
-              <pre>{$inspector[0][0]}</pre>
+              <b>[MyBot] Sent #{$inspector[0].n}</b>
+              <pre>{$inspector[0].req}</pre>
               <b>[MyBot] Received</b>
-              <pre>{$inspector[0][1]}</pre>
-              <b>[Enemy] Sent #{$inspector[1][2]}</b>
-              <pre>{$inspector[1][0]}</pre>
+              <pre>{$inspector[0].res}</pre>
+              <b>[Enemy] Sent #{$inspector[1].n}</b>
+              <pre>{$inspector[1].req}</pre>
               <b>[Ememy] Received</b>
-              <pre>{$inspector[1][1]}</pre>
+              <pre>{$inspector[1].res}</pre>
             </div>
           </div>
         {/if}

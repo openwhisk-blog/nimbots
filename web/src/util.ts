@@ -29,27 +29,3 @@ export class AssetsLoader {
         }
     }
 }
-
-class Logger {
-
-    requestOn: false
-    request(...args: any[]) {
-        if(this.requestOn)
-            console.log("request:", ...args)
-    }
-
-    actionOn: false
-    action(...args: any[]) {
-        if(this.actionOn)
-            console.log("action:", ...args)
-    }
-
-    eventOn: false
-    event(...args: any[]) {
-
-        if(this.eventOn)
-            console.log("event:", ...args)
-    }
-}
-
-export let log = new Logger()
