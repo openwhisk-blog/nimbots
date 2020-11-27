@@ -94,7 +94,7 @@ export class Robot {
   hp: number = HP
 
   tank_angle: number = 0// Math.random() * 360
-  turret_angle: number = Math.random() * 360
+  turret_angle: number = 90 //Math.random() * 360
   radar_angle: number = this.turret_angle; //Math.random() * 360
   event_counter: number = 0
 
@@ -114,6 +114,7 @@ export class Robot {
   enemy_spot = {}
   action_to_collide = 0
   waiting_for_response = false
+  just_spotted = false
 
   x: number
   y: number
@@ -181,7 +182,6 @@ export class Robot {
     this.yell_msg = msg
   }
 
-
   async send(msg: object): Promise<boolean> {
     let json = JSON.stringify(msg, null, 2)
     ++this.event_counter
@@ -224,8 +224,9 @@ export class Robot {
       "energy": this.hp,
       "x": Math.floor(this.me.x),
       "y": Math.floor(this.me.y),
-      "tank_angle": Math.floor(this.tank_angle),
-      "turret_angle": Math.floor(this.turret_angle),
+      "angle": Math.floor(this.me.angle),
+      "tank_angle": Math.floor(this.me.tank_angle),
+      "turret_angle": Math.floor(this.me.turret_angle),
       "enemy_spot": this.enemy_spot,
       "data": this.data
     })
@@ -435,19 +436,20 @@ export class Robot {
     }
 
     if (!this.waiting_for_response) {
-
       // check if spotted enemy
-      if (this.is_spot) {
-        console.log("sending spot")
-        this.is_spot = false
-        await this.send_event("enemy-spot")
-        return
+      if (this.is_spot && !this.just_spotted) {
+          console.log("sending spot")
+          this.is_spot = false
+          this.just_spotted = true
+          await this.send_event("enemy-spot")
+          return
       }
 
       if (this.is_hit) {
         this.status.is_hit = true
         this.events = []
         await this.send_event("hit")
+        this.just_spotted = false
         this.is_hit = false
         return
       }
@@ -456,6 +458,7 @@ export class Robot {
       if (this.status.wall_collide) {
         this.events = []
         await this.send_event("wall-collide")
+        this.just_spotted = false
         return
       }
 
@@ -463,6 +466,8 @@ export class Robot {
       if (this.events.length == 0) {
         // check if it is hit
         await this.send_event("idle")
+        this.just_spotted = false
+        return
       }
     }
   }
@@ -487,7 +492,6 @@ export class Robot {
     }
     return ""
   }
-
 
   decode(json: string): Event[] {
     let data: Event | Array<Event> = JSON.parse(json)

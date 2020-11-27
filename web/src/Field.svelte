@@ -92,8 +92,8 @@
   }
 
   function trace() {
-    status = "Fighting for one round...";
-    fighting = true;
+    status = "Tracing...";
+    fighting = false;
     msg = battle.trace();
   }
 
@@ -198,10 +198,11 @@
           <div class="column column-25">
             <label for="enemy">Enemy Robot</label>
             <select bind:value={enemyBot} id="enemy">
-              <option value="nimbots/BackAndForth">BackAndForth</option>
               <option value="nimbots/LookAround">LookAround</option>
+              <option value="nimbots/BackAndForth">BackAndForth</option>
               <option value="nimbots/RandomTurn">RandomTurn</option>
               <option value="nimbots/LookAndShot">LookAndShot</option>
+              <option value="nimbots/Terminator">LookAndShot</option>
             </select>
           </div>
           <div class="column column-25">
@@ -299,7 +300,6 @@
                 id="edit"
                 on:click={edit}
                 disabled={myBots.length == 0}>Edit</button>
-           
           </div>
           <div class="column column-20">
             <tt>Mine:&nbsp;&nbsp;<span id="blue">blue robot</span></tt><br />
@@ -318,7 +318,7 @@
         {#if debug}
           <div class="row">
             <div class="column column-25">
-              <button id="step" on:click={trace}>Fight one round</button>
+              <button id="step" on:click={trace}>Trace</button>
             </div>
             <div class="column column-25">
               Trace:&nbsp;

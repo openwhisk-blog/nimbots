@@ -72,7 +72,7 @@ export class Battle {
   }
 
   completed_request(msg: string, ok: boolean) {
-    if (!ok || this.tracing) {
+    if (!ok) {
       this.suspended = true
       this.suspend_battle(msg)
     }
@@ -87,14 +87,11 @@ export class Battle {
   }
 
 
-  loop() {
-    //console.log("suspended=", this.suspended, "tracing=", this.tracing)
-    //if (this.suspended)
-    //  return
-    
+  loop() {    
     // update robots
-    for (let robot of Battle.robots)
+    for (let robot of Battle.robots) {
       robot.update()
+    }
     // check battle status 
     // are explosion finished so we can declare game over?
     if (Battle.explosions.length == 0 && Battle.robots.length <= 1) {
@@ -107,6 +104,8 @@ export class Battle {
     // refresh
     this.draw()
     // iterate
+    if(this.tracing)
+      return
     if (!this.suspended)
       this.timeout = setTimeout(() => this.loop(), Battle.speed)
   }
@@ -126,7 +125,7 @@ export class Battle {
   }
 
   trace() {
-    this.suspended = false
+    this.suspended = true
     this.tracing = true
     this.loop()
     return this.title
