@@ -14,5 +14,5 @@ You can code your actions in any programming language supported by Nimbella.
 
 [The API is described here](API.md).
 
-You can also check [those examples](packages/nimbots) for inspiration.
+You can also check [those examples](packages/default) for inspiration.
 
