@@ -14,7 +14,7 @@ export class Battle {
   static speed = 10
 
   end_battle: (id: number) => void
-  suspend_battle: (msg: string) => void
+  suspend_battle: (msg: string, state0: string, state1: string) => void
 
   width: number
   height: number
@@ -28,7 +28,7 @@ export class Battle {
   constructor(
     width: number, height: number,
     end_battle: (id: number) => void,
-    suspend_battle: (string) => void
+    suspend_battle: (msg:string, state0:string, state1:string) => void
   ) {
     Robot.battlefield_height = height
     Robot.battlefield_width = width
@@ -40,7 +40,7 @@ export class Battle {
     Battle.battle = this
   }
 
-  init(urls: string[]) {
+  init(urls: string[], startAngles:number[][]) {
     this.title = urls[0].split("/").pop() + " vs " + urls[1].split("/").pop()
     // calculate appearing position
     let robotAppearPosY = this.height / 2
@@ -56,25 +56,36 @@ export class Battle {
       Battle.robots.push(r)
       // next appear position
       robotAppearPosX += robotAppearPosXInc
+      robotAppearPosY += 100
       if (id >= 2) {
         robotAppearPosX = Math.random() * (this.width - 100 + 20)
       }
     }
 
     // inject enemies
+    let i = 0
     for (let rr of Battle.robots) {
       let enemies: Robot[] = []
       for (let r of Battle.robots)
         if (r.id != rr.id)
           enemies.push(r)
-      rr.init(enemies)
+      rr.init(enemies, startAngles[i][0], startAngles[i][1])
+      i++
     }
+  }
+
+  robotState(i: number) {
+    let me = Battle.robots[i].me
+    console.log(me)
+    if(me)
+      return `x=${Math.floor(me.x)} y=${Math.floor(me.y)} angle=${Math.floor(me.angle)} tank=${Math.floor(me.tank_angle)} turret=${Math.floor(me.turret_angle)}`
+    return ""    
   }
 
   completed_request(msg: string, ok: boolean) {
     if (!ok) {
       this.suspended = true
-      this.suspend_battle(msg)
+      this.suspend_battle(msg, this.robotState(0), this.robotState(1))
     }
   }
 
@@ -85,7 +96,6 @@ export class Battle {
       progress: 1
     })
   }
-
 
   loop() {    
     // update robots
@@ -104,8 +114,10 @@ export class Battle {
     // refresh
     this.draw()
     // iterate
-    if(this.tracing)
+    if(this.tracing) {
+      this.suspend_battle("Tracing... (suspended)", this.robotState(0), this.robotState(1))
       return
+    }
     if (!this.suspended)
       this.timeout = setTimeout(() => this.loop(), Battle.speed)
   }

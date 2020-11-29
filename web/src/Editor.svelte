@@ -3,7 +3,7 @@
   import { onDestroy, onMount } from "svelte";
   import { source } from "./store";
   import type { OpenWhisk } from "./openwhisk";
-  import { rumbleSave, rumbleDelete } from './rumble'
+  import { rumbleSave, rumblePublish, rumbleDelete } from './rumble'
 
   export let ow: OpenWhisk;
 
@@ -33,22 +33,47 @@
   }
 
   async function del() {
+    let name = $source;
+    name = name.split(".")[0]
+    let namespace = ow.namespace;
+    let botname =  namespace.split("-")[0] + "/" + name
     if (confirm("Are you sure you want to delete this Robot?")) {
       ow.del($source).then(() => {
         editor.setValue("", "");
         source.set("");
-      });
+      }); 
       await rumbleDelete(`${ow.namespace}:${$source}`)
     }
   }
 
   async function save() {
+    let name = $source;
+    name = name.split(".")[0]
+    let namespace = ow.namespace;
+    namespace = namespace.split("-")[0]
+
     let code = await editor.getValue();
     //console.log(code);
     ow.save($source, code, true).then(() => {
       source.set("");
     });
-    await rumbleSave(`${ow.namespace}:${$source}`, code)
+    await rumbleSave(`${ow.namespace}:${$source}`, code)    
+  }
+
+  async function publish() {
+    let name = $source;
+    name = name.split(".")[0]
+    let namespace = ow.namespace;
+    let botname =  namespace.split("-")[0] + "/" + name
+    if(confirm("Are you sure you want everyone can see your robot?")) {
+      let url = `https://apigcp.nimbella.io/api/v1/web/${ow.namespace}/default/${name}`
+      let res = await rumblePublish(botname, url)
+      if(res)
+        alert("Published as "+botname)
+      else
+        alert("Error! Cannot publish your robot")
+      source.set("")
+    }
   }
 </script>
 
@@ -73,6 +98,8 @@
         <button id="done" on:click={cancel}>Cancel</button>
         &nbsp;
         <button id="done" on:click={del}>Delete</button>
+        &nbsp;
+        <button id="done" on:click={publish}>Publish</button>
       </div>
       <div class="float-right">
         <h3>

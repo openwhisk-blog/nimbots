@@ -6,6 +6,7 @@
   import { onMount, afterUpdate, onDestroy } from "svelte";
   import { inspector, source } from "./store";
   import { log } from "./robot";
+  import { rumblePublic } from './rumble'
 
   export let base: string;
   export let ow: OpenWhisk;
@@ -25,7 +26,11 @@
   let myBot: string = "JsBot";
   let robotName = "";
   let robotType = "js";
+  
+  
   let myBots: string[] = [];
+
+  let enemyBots: { name: string, url: string }[] = []
 
   let robotMap = {
     js: "/src/JsBot.js",
@@ -66,6 +71,7 @@
       myBots = await ow.list();
       if (myBots.length > 0) myBot = myBots[0];
     }
+    enemyBots = await rumblePublic()
   }
 
   let unsubscribeSource = source.subscribe((value) => {
@@ -86,8 +92,8 @@
     fighting = false;
     battle.stop();
     inspector.set([
-      { n: 0, req: "", res: "" },
-      { n: 0, req: "", res: "" },
+      { n: 0, req: "", res: "", state:"" },
+      { n: 0, req: "", res: "", state:"" },
     ]);
   }
 
@@ -97,9 +103,14 @@
     msg = battle.trace();
   }
 
-  function suspended(msg: string) {
+  function suspended(msg: string, state0: string, state1: string) {
     status = msg;
     fighting = false;
+    inspector.update((info) => {
+      info[0].state = state0
+      info[1].state = state1
+      return info
+    })
   }
 
   function edit() {
@@ -131,7 +142,10 @@
     let urls = [myBase + myBot.split(".")[0], enemyBase + enemyBot];
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
-    battle.webinit(canvas.getContext("2d"), urls);
+
+    let startAngles = [ [Math.random()*360,Math.random()*360], [Math.random()*360,Math.random()*360]]
+  
+    battle.webinit(canvas.getContext("2d"), urls, startAngles);
     ready = true;
     msg = "Nimbots assembled!";
     status = "Ready to fight.";
@@ -148,6 +162,7 @@
       battle.stop();
     }
   }
+
 
   onMount(() => {
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
@@ -202,7 +217,10 @@
               <option value="nimbots/BackAndForth">BackAndForth</option>
               <option value="nimbots/RandomTurn">RandomTurn</option>
               <option value="nimbots/LookAndShot">LookAndShot</option>
-              <option value="nimbots/Terminator">LookAndShot</option>
+              <option value="nimbots/Terminator">Terminator</option>
+              {#each enemyBots as enemy}
+              <option value="{enemy.url}">{enemy.name}</option>
+              {/each}
             </select>
           </div>
           <div class="column column-25">
@@ -337,35 +355,16 @@
               (open console)
             </div>
           </div>
-          <!--
-          <div class="row">
-            If your bot plays too fast, the battle will be suspended!
-          </div>
-          <div class="row">
-            <label for="enemy">Battle Speed</label>
-            <select
-              bind:value={speed}
-              on:blur={() => {
-                Battle.speed = parseInt(speed);
-              }}>
-              <option value="5">Very Fast</option>
-              <option value="10">Fast</option>
-              <option value="25">Normal</option>
-              <option value="50">Slow</option>
-              <option value="100">Very Slow</option>
-            </select>
-          </div>
-          -->
           <div class="row">
             <div class="column column-50">
-              <b>[MyBot] Sent #{$inspector[0].n}</b>
-              <pre>{$inspector[0].req}</pre>
-              <b>[MyBot] Received</b>
-              <pre>{$inspector[0].res}</pre>
-              <b>[Enemy] Sent #{$inspector[1].n}</b>
-              <pre>{$inspector[1].req}</pre>
-              <b>[Ememy] Received</b>
-              <pre>{$inspector[1].res}</pre>
+              <b>[Me] {$inspector[0].state}</b><br>
+              Request/<b>Response</b> #{$inspector[0].n}
+              <pre>{$inspector[0].req}<br><b>{$inspector[0].res}</b>
+              </pre>
+              <b>[Emeny] {$inspector[1].state}</b><br>
+              Request/<b>Response</b> #{$inspector[1].n}
+              <pre>{$inspector[1].req}<br><b>{$inspector[1].res}</b>
+              </pre>
             </div>
           </div>
         {/if}

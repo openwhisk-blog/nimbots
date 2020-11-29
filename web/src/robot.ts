@@ -44,7 +44,7 @@ export let log = new Logger()
 const BULLET_SPEED = 3
 const MAX_BULLET = 5
 const BULLET_INTERVAL = 50
-const ROBOT_RADIUS = 25
+const ROBOT_RADIUS = 50
 
 interface Event {
   action?: string
@@ -93,9 +93,9 @@ export class Robot {
   id: number = 0
   hp: number = HP
 
-  tank_angle: number = 0// Math.random() * 360
-  turret_angle: number = 90 //Math.random() * 360
-  radar_angle: number = this.turret_angle; //Math.random() * 360
+  tank_angle: number = 0
+  turret_angle: number = 0 
+  radar_angle: number = 0 
   event_counter: number = 0
 
   events: Event[] = []
@@ -136,8 +136,10 @@ export class Robot {
     this.hit_robot = hit_robot
   }
 
-  init(enemies: Robot[]) {
+  init(enemies: Robot[], tank_angle:number, turret_angle:number) {
     this.enemies = enemies
+    this.turret_angle = turret_angle
+    this.tank_angle = tank_angle
   }
 
   move(distance: number) {

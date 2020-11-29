@@ -6,14 +6,15 @@ function main(args){
                 let me = args.turret_angle
                 let him = args.data.angle
                 if(me > him) {
-                    actions.push({"move_forwards": 0, "turn_turret_left": me-him, "yell": "left "+(me-him)})
+                    actions.push({ "turn_turret_left": me-him, "yell": "left "+(me-him)})
                 } else {
                     actions.push({"move_forwards":0, "turn_turret_right": him-me, "yell": "right "+(him-me)})
                 }
                 actions.push({"shoot": true,  "data": {}})
             } else {
-              actions.push({"move_forwards": 10+Math.random()*90, "turn_turret_left": 360})
-              actions.push({"turn_left": 10+Math.random()*80 })
+              //actions.push({"move_forwards": 10+Math.random()*90, "turn_turret_left": 360})
+              //actions.push({"turn_left": 10+Math.random()*80 })
+              actions.push({"turn_turret_left": 360 })
             }
             break;
         case "wall-collide":

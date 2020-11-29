@@ -3,7 +3,7 @@ function main(args) {
     switch (args.event) {
         case "idle":
             res.push({
-                "turn_right": 10,
+                "turn_right": 20,
                 "turn_turret_right": 30
             })
             if(Math.random()>0.5)
