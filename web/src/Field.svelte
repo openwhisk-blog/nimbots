@@ -136,10 +136,9 @@
   });
 
   function selected() {
-    let enemyBase = base + "nimbots/";
     let myBase =
       base + (myBots.length == 0 ? "nimbots" : ow.namespace) + "/default/";
-    let urls = [myBase + myBot.split(".")[0], enemyBase + enemyBot];
+    let urls = [myBase + myBot.split(".")[0], base + enemyBot];
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
 
@@ -213,11 +212,11 @@
           <div class="column column-25">
             <label for="enemy">Enemy Robot</label>
             <select bind:value={enemyBot} id="enemy">
-              <option value="nimbots/LookAround">LookAround</option>
-              <option value="nimbots/BackAndForth">BackAndForth</option>
-              <option value="nimbots/RandomTurn">RandomTurn</option>
-              <option value="nimbots/LookAndShot">LookAndShot</option>
-              <option value="nimbots/Terminator">Terminator</option>
+              <option value="nimbots/default/Terminator">sample/Terminator</option>
+              <option value="nimbots/default/LookAndShot">sample/LookAndShot</option>
+              <option value="nimbots/default/RandomTurn">sample/RandomTurn</option>
+              <option value="nimbots/default/BackAndForth">sample/BackAndForth</option>
+              <option value="nimbots/default/LookAround">sample/LookAround</option>
               {#each enemyBots as enemy}
               <option value="{enemy.url}">{enemy.name}</option>
               {/each}

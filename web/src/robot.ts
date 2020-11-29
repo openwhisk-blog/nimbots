@@ -1,5 +1,9 @@
-
 export const HP = 5
+
+const BULLET_SPEED = 3
+const MAX_BULLET = 5
+const BULLET_INTERVAL = 50
+const ROBOT_RADIUS = 5
 
 export function degrees2radians(degrees: number): number {
   return degrees * (Math.PI / 180)
@@ -40,11 +44,6 @@ class Logger {
 }
 
 export let log = new Logger()
-
-const BULLET_SPEED = 3
-const MAX_BULLET = 5
-const BULLET_INTERVAL = 50
-const ROBOT_RADIUS = 50
 
 interface Event {
   action?: string
@@ -238,19 +237,22 @@ export class Robot {
     this.enemy_spot = {}
     let is_spot = false
     for (let enemy_robot of this.enemies) {
+  
       let my_angle = (this.tank_angle + this.turret_angle) % 360
-      my_angle = my_angle < 0 ? my_angle : 360 + my_angle
+      my_angle = my_angle < 0 ?  360 + my_angle : my_angle 
       let my_radians = degrees2radians(my_angle)
       let enemy_position_radians = Math.atan2(enemy_robot.y - this.y, enemy_robot.x - this.x)
       let distance = euclidDistance(this.x, this.y, enemy_robot.x, enemy_robot.y)
       let radians_diff = Math.atan2(ROBOT_RADIUS, distance)
 
       // XXX a dirty shift
-      my_radians = Math.abs(my_radians)
+      //my_radians = Math.abs(my_radians)
       if (my_radians > Math.PI)
         my_radians -= (2 * Math.PI)
       if (my_radians < -Math.PI)
         my_radians += (2 * Math.PI)
+        
+      //console.log(this.id, "check id me him diff", enemy_robot.id, my_radians, enemy_position_radians, radians_diff)
 
       let max = enemy_position_radians + radians_diff
       let min = enemy_position_radians - radians_diff
@@ -260,7 +262,7 @@ export class Robot {
         if (enemy_position_degrees < 0)
           enemy_position_degrees = 360 + enemy_position_degrees
         this.enemy_spot = {
-          //id: enemy_robot.id, 
+          id: enemy_robot.id, 
           x: Math.floor(enemy_robot.x),
           y: Math.floor(enemy_robot.y),
           angle: Math.floor(enemy_position_degrees),
@@ -304,7 +306,7 @@ export class Robot {
     }
   }
 
-  async update() {
+  async update(): Promise<boolean> {
     //console.log("update")
     this.me = {
       angle: (this.tank_angle + this.turret_angle) % 360,
@@ -434,44 +436,47 @@ export class Robot {
     // check if we spotted the enemy
     if (!this.is_spot && this.check_enemy_spot()) {
       this.is_spot = true
-      console.log("spotted!")
+      //console.log(this.id, "spotted enemy!")
     }
 
     if (!this.waiting_for_response) {
       // check if spotted enemy
       if (this.is_spot && !this.just_spotted) {
-          console.log("sending spot")
+          //console.log(this.id, "sending spot")
           this.is_spot = false
           this.just_spotted = true
-          await this.send_event("enemy-spot")
-          return
+          return this.send_event("enemy-spot")
       }
 
       if (this.is_hit) {
         this.status.is_hit = true
         this.events = []
-        await this.send_event("hit")
-        this.just_spotted = false
-        this.is_hit = false
-        return
+        return this.send_event("hit").then( (res) => {
+          this.is_hit = false
+          this.just_spotted = false  
+          return res
+        })
       }
 
       // check collision
       if (this.status.wall_collide) {
         this.events = []
-        await this.send_event("wall-collide")
-        this.just_spotted = false
-        return
+        return this.send_event("wall-collide").then( (res) => {
+          this.just_spotted = false
+          return res
+        })
       }
 
       // notify idle
       if (this.events.length == 0) {
         // check if it is hit
-        await this.send_event("idle")
-        this.just_spotted = false
-        return
+        return this.send_event("idle").then( (res) => {
+          this.just_spotted = false
+          return res
+        })
       }
     }
+    return true
   }
 
   actions = [

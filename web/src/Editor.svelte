@@ -3,7 +3,7 @@
   import { onDestroy, onMount } from "svelte";
   import { source } from "./store";
   import type { OpenWhisk } from "./openwhisk";
-  import { rumbleSave, rumblePublish, rumbleDelete } from './rumble'
+  import { rumbleSave, rumblePublish} from './rumble'
 
   export let ow: OpenWhisk;
 
@@ -42,7 +42,6 @@
         editor.setValue("", "");
         source.set("");
       }); 
-      await rumbleDelete(`${ow.namespace}:${$source}`)
     }
   }
 
@@ -66,7 +65,7 @@
     let namespace = ow.namespace;
     let botname =  namespace.split("-")[0] + "/" + name
     if(confirm("Are you sure you want everyone can see your robot?")) {
-      let url = `https://apigcp.nimbella.io/api/v1/web/${ow.namespace}/default/${name}`
+      let url = `${ow.namespace}/default/${name}`
       let res = await rumblePublish(botname, url)
       if(res)
         alert("Published as "+botname)

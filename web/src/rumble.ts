@@ -43,9 +43,3 @@ export async function rumblePublic(): Promise<Enemy[]> {
     .then((resp)=> resp.json())
     .catch((err)=> [])
 }
-
-export function rumbleDelete(name): Promise<string> {
-    return fetch(encodeURI(URL_REGISTER+"?key="+name))
-    .then((resp) => resp.text())
-    .then((value)=> value)
-}

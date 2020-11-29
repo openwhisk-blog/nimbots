@@ -56,7 +56,7 @@ export class Battle {
       Battle.robots.push(r)
       // next appear position
       robotAppearPosX += robotAppearPosXInc
-      robotAppearPosY += 100
+      //robotAppearPosY += 100
       if (id >= 2) {
         robotAppearPosX = Math.random() * (this.width - 100 + 20)
       }
@@ -76,7 +76,7 @@ export class Battle {
 
   robotState(i: number) {
     let me = Battle.robots[i].me
-    console.log(me)
+    //console.log(me)
     if(me)
       return `x=${Math.floor(me.x)} y=${Math.floor(me.y)} angle=${Math.floor(me.angle)} tank=${Math.floor(me.tank_angle)} turret=${Math.floor(me.turret_angle)}`
     return ""    
@@ -97,10 +97,15 @@ export class Battle {
     })
   }
 
-  loop() {    
+  async loop() {    
     // update robots
     for (let robot of Battle.robots) {
-      robot.update()
+      robot.update().then((ok) => {
+        if(!ok) {
+          this.stop()
+          this.end_battle( robot.id == 0 ? 1 : 0)
+        }
+      })
     }
     // check battle status 
     // are explosion finished so we can declare game over?
@@ -113,11 +118,13 @@ export class Battle {
     }
     // refresh
     this.draw()
+
     // iterate
     if(this.tracing) {
       this.suspend_battle("Tracing... (suspended)", this.robotState(0), this.robotState(1))
       return
     }
+
     if (!this.suspended)
       this.timeout = setTimeout(() => this.loop(), Battle.speed)
   }
