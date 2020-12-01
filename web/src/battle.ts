@@ -21,7 +21,7 @@ export class Battle {
 
   suspended = true
   tracing = true
-  timeout = 0
+  timeout:any = 0
 
   title = ""
 

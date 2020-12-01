@@ -1,3 +1,5 @@
+import fetch from 'cross-fetch'
+
 export const HP = 5
 
 const BULLET_SPEED = 3
@@ -24,19 +26,20 @@ export function inRect(x1: number, y1: number, x2: number, y2: number, width: nu
 
 class Logger {
 
-  requestOn: false
+  requestOn = false
+  actionOn = false
+  eventOn = false
+
   request(...args: any[]) {
     if (this.requestOn)
       console.log("request:", ...args)
   }
 
-  actionOn: false
   action(...args: any[]) {
     if (this.actionOn)
       console.log("action:", ...args)
   }
 
-  eventOn: false
   event(...args: any[]) {
     if (this.eventOn)
       console.log("event:", ...args)
@@ -108,7 +111,7 @@ export class Robot {
   is_yell = false
   is_spot = false
   yell_ts = 0
-  yell_msg = undefined
+  yell_msg = ""
   bullet_ts = 0
   enemy_spot = {}
   action_to_collide = 0
@@ -219,7 +222,7 @@ export class Robot {
     })
   }
 
-  async send_event(event): Promise<boolean> {
+  async send_event(event: string): Promise<boolean> {
     return this.send({
       "event": event,
       "energy": this.hp,

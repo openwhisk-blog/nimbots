@@ -1,5 +1,6 @@
 <script lang="ts">
   import "milligram/dist/milligram.min.css";
+  import fetch from 'cross-fetch'
   import type { OpenWhisk } from "./openwhisk";
   import { URL_LOGIN, VERSION } from "./const";
   import { BattleWeb } from "./battleweb";

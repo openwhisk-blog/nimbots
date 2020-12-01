@@ -24,6 +24,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
+    "cross-fetch": "^3.0.6",
     "milligram": "^1.4.1",
     "normalize": "^0.3.1",
     "sirv-cli": "^1.0.0"
