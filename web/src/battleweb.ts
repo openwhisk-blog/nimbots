@@ -48,7 +48,7 @@ export class BattleWeb extends Battle {
     constructor(
         width: number, height: number,
         end_battle: (id: number) => void,
-        suspend_battle: (mgs:string, state0:string, state1:string) => void
+        suspend_battle: (mgs: string, state0: string, state1: string) => void
     ) {
         super(width, height, end_battle, suspend_battle)
         Assets.loadAll(() => { })
@@ -56,9 +56,9 @@ export class BattleWeb extends Battle {
 
     webinit(ctx: CanvasRenderingContext2D, url: string[], startAngles: number[][]) {
         this.ctx = ctx
-        this.init(url, startAngles)
-        for(let r of Battle.robots)
-        r.inspect = inspect
+        this.init(url, startAngles, -1)
+        for (let r of Battle.robots)
+            r.inspect = inspect
     }
 
     draw() {

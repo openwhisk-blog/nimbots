@@ -1,13 +1,13 @@
 <script lang="ts">
   import "milligram/dist/milligram.min.css";
-  import fetch from 'cross-fetch'
+  import fetch from "cross-fetch";
   import type { OpenWhisk } from "./openwhisk";
   import { URL_LOGIN, VERSION } from "./const";
   import { BattleWeb } from "./battleweb";
   import { onMount, afterUpdate, onDestroy } from "svelte";
   import { inspector, source } from "./store";
   import { log } from "./robot";
-  import { rumblePublic } from './rumble'
+  import { rumblePublic } from "./rumble";
 
   export let base: string;
   export let ow: OpenWhisk;
@@ -27,11 +27,10 @@
   let myBot: string = "JsBot";
   let robotName = "";
   let robotType = "js";
-  
-  
+
   let myBots: string[] = [];
 
-  let enemyBots: { name: string, url: string }[] = []
+  let enemyBots: { name: string; url: string }[] = [];
 
   let robotMap = {
     js: "/src/JsBot.js",
@@ -72,7 +71,7 @@
       myBots = await ow.list();
       if (myBots.length > 0) myBot = myBots[0];
     }
-    enemyBots = await rumblePublic()
+    enemyBots = await rumblePublic();
   }
 
   let unsubscribeSource = source.subscribe((value) => {
@@ -93,8 +92,8 @@
     fighting = false;
     battle.stop();
     inspector.set([
-      { n: 0, req: "", res: "", state:"" },
-      { n: 0, req: "", res: "", state:"" },
+      { n: 0, req: "", res: "", state: "" },
+      { n: 0, req: "", res: "", state: "" },
     ]);
   }
 
@@ -108,16 +107,16 @@
     status = msg;
     fighting = false;
     inspector.update((info) => {
-      info[0].state = state0
-      info[1].state = state1
-      return info
-    })
+      info[0].state = state0;
+      info[1].state = state1;
+      return info;
+    });
   }
 
   function edit() {
     console.log(myBot);
     source.set(myBot);
-    battle.stop()
+    battle.stop();
     editing = true;
   }
 
@@ -143,8 +142,11 @@
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
 
-    let startAngles = [ [Math.random()*360,Math.random()*360], [Math.random()*360,Math.random()*360]]
-  
+    let startAngles = [
+      [Math.random() * 360, Math.random() * 360],
+      [Math.random() * 360, Math.random() * 360],
+    ];
+
     battle.webinit(canvas.getContext("2d"), urls, startAngles);
     ready = true;
     msg = "Nimbots assembled!";
@@ -162,7 +164,6 @@
       battle.stop();
     }
   }
-
 
   onMount(() => {
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
@@ -213,13 +214,23 @@
           <div class="column column-25">
             <label for="enemy">Enemy Robot</label>
             <select bind:value={enemyBot} id="enemy">
-              <option value="nimbots/default/Terminator">sample/Terminator</option>
-              <option value="nimbots/default/LookAndShot">sample/LookAndShot</option>
-              <option value="nimbots/default/RandomTurn">sample/RandomTurn</option>
-              <option value="nimbots/default/BackAndForth">sample/BackAndForth</option>
-              <option value="nimbots/default/LookAround">sample/LookAround</option>
+              <option value="nimbots/default/Terminator">
+                sample/Terminator
+              </option>
+              <option value="nimbots/default/LookAndShot">
+                sample/LookAndShot
+              </option>
+              <option value="nimbots/default/RandomTurn">
+                sample/RandomTurn
+              </option>
+              <option value="nimbots/default/BackAndForth">
+                sample/BackAndForth
+              </option>
+              <option value="nimbots/default/LookAround">
+                sample/LookAround
+              </option>
               {#each enemyBots as enemy}
-              <option value="{enemy.url}">{enemy.name}</option>
+                <option value={enemy.url}>{enemy.name}</option>
               {/each}
             </select>
           </div>
@@ -238,6 +249,14 @@
             </select>
           </div>
         </div>
+        <!--
+        <div class="row">
+          <div class="column column-50">
+            <button class="center">Submit my robot to FAAS Wars Competition</button>
+          </div>
+        </div>
+        <p><b>NOTE:</b> only one robot per user can be submitted.</p>
+          -->
         <div class="row">
           <div class="column column-25">
             <button id="done" on:click={selected}>Start the Battle</button>
@@ -314,10 +333,10 @@
                 fighting = false;
                 battle.stop();
               }}>Stop</button><br />
-              <button
-                id="edit"
-                on:click={edit}
-                disabled={myBots.length == 0}>Edit</button>
+            <button
+              id="edit"
+              on:click={edit}
+              disabled={myBots.length == 0}>Edit</button>
           </div>
           <div class="column column-20">
             <tt>Mine:&nbsp;&nbsp;<span id="blue">blue robot</span></tt><br />
@@ -357,13 +376,15 @@
           </div>
           <div class="row">
             <div class="column column-50">
-              <b>[Me] {$inspector[0].state}</b><br>
-              Request/<b>Response</b> #{$inspector[0].n}
-              <pre>{$inspector[0].req}<br><b>{$inspector[0].res}</b>
+              <b>[Me] {$inspector[0].state}</b><br />
+              Request/<b>Response</b>
+              #{$inspector[0].n}
+              <pre>{$inspector[0].req}<br /><b>{$inspector[0].res}</b>
               </pre>
-              <b>[Emeny] {$inspector[1].state}</b><br>
-              Request/<b>Response</b> #{$inspector[1].n}
-              <pre>{$inspector[1].req}<br><b>{$inspector[1].res}</b>
+              <b>[Emeny] {$inspector[1].state}</b><br />
+              Request/<b>Response</b>
+              #{$inspector[1].n}
+              <pre>{$inspector[1].req}<br /><b>{$inspector[1].res}</b>
               </pre>
             </div>
           </div>

@@ -66,8 +66,8 @@
 <p>For each sequential action you can also specify a parallel action, that is done at the same time as the sequential (that is: the tank can fire and move the turret while it is moving in a given direction)</p>
 <p>The parallel actions are:</p>
 <ul>
-<li><code>turn_turrent_left: &lt;number&gt;</code>: turn the turrent to the left of the given angle in degrees</li>
-<li><code>turn_turrent_right: &lt;number&gt;</code>: turn the turrent to the right of the given angle in degrees</li>
+<li><code>turn_turret_left: &lt;number&gt;</code>: turn the turret to the left of the given angle in degrees</li>
+<li><code>turn_turret_right: &lt;number&gt;</code>: turn the turret to the right of the given angle in degrees</li>
 <li><code>shot: true</code>: fires a bullet; note you can fire up to 5 bullets at the same time</li>
 <li><code>yell: &lt;string&gt;</code>: yell a message that will be displayed in the battle field</li>
 </ul>

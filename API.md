@@ -87,7 +87,7 @@ For each sequential action you can also specify a parallel action, that is done 
 
 The parallel actions are:
 
-- `turn_turrent_left: <number>`: turn the turrent to the left of the given angle in degrees
-- `turn_turrent_right: <number>`: turn the turrent to the right of the given angle in degrees
+- `turn_turret_left: <number>`: turn the turret to the left of the given angle in degrees
+- `turn_turret_right: <number>`: turn the turret to the right of the given angle in degrees
 - `shot: true`: fires a bullet; note you can fire up to 5 bullets at the same time
 - `yell: <string>`: yell a message that will be displayed in the battle field

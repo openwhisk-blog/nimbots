@@ -29,6 +29,15 @@ class Logger {
   requestOn = false
   actionOn = false
   eventOn = false
+  statesOn = false
+  filter = (n: number) => true
+
+  state(n: number, state0: string, state1: string) {
+    if (this.statesOn) {
+      if (this.filter(n))
+        console.log(n, "champ:", state0, "enemy:", state1)
+    }
+  }
 
   request(...args: any[]) {
     if (this.requestOn)
@@ -96,8 +105,8 @@ export class Robot {
   hp: number = HP
 
   tank_angle: number = 0
-  turret_angle: number = 0 
-  radar_angle: number = 0 
+  turret_angle: number = 0
+  radar_angle: number = 0
   event_counter: number = 0
 
   events: Event[] = []
@@ -126,7 +135,7 @@ export class Robot {
 
   completed_request: (msg: string, ok: boolean) => void
   hit_robot: (x: number, y: number) => void
-  inspect: (id: number, counter: number, request: string, response: string) => void = function() {}
+  inspect: (id: number, counter: number, request: string, response: string) => void = function () { }
 
   constructor(x: number, y: number, url: string,
     completed_request: (msg: string, ok: boolean) => void,
@@ -138,7 +147,7 @@ export class Robot {
     this.hit_robot = hit_robot
   }
 
-  init(enemies: Robot[], tank_angle:number, turret_angle:number) {
+  init(enemies: Robot[], tank_angle: number, turret_angle: number) {
     this.enemies = enemies
     this.turret_angle = turret_angle
     this.tank_angle = tank_angle
@@ -240,9 +249,9 @@ export class Robot {
     this.enemy_spot = {}
     let is_spot = false
     for (let enemy_robot of this.enemies) {
-  
+
       let my_angle = (this.tank_angle + this.turret_angle) % 360
-      my_angle = my_angle < 0 ?  360 + my_angle : my_angle 
+      my_angle = my_angle < 0 ? 360 + my_angle : my_angle
       let my_radians = degrees2radians(my_angle)
       let enemy_position_radians = Math.atan2(enemy_robot.y - this.y, enemy_robot.x - this.x)
       let distance = euclidDistance(this.x, this.y, enemy_robot.x, enemy_robot.y)
@@ -254,7 +263,7 @@ export class Robot {
         my_radians -= (2 * Math.PI)
       if (my_radians < -Math.PI)
         my_radians += (2 * Math.PI)
-        
+
       //console.log(this.id, "check id me him diff", enemy_robot.id, my_radians, enemy_position_radians, radians_diff)
 
       let max = enemy_position_radians + radians_diff
@@ -265,7 +274,7 @@ export class Robot {
         if (enemy_position_degrees < 0)
           enemy_position_degrees = 360 + enemy_position_degrees
         this.enemy_spot = {
-          id: enemy_robot.id, 
+          id: enemy_robot.id,
           x: Math.floor(enemy_robot.x),
           y: Math.floor(enemy_robot.y),
           angle: Math.floor(enemy_position_degrees),
@@ -445,18 +454,18 @@ export class Robot {
     if (!this.waiting_for_response) {
       // check if spotted enemy
       if (this.is_spot && !this.just_spotted) {
-          //console.log(this.id, "sending spot")
-          this.is_spot = false
-          this.just_spotted = true
-          return this.send_event("enemy-spot")
+        //console.log(this.id, "sending spot")
+        this.is_spot = false
+        this.just_spotted = true
+        return this.send_event("enemy-spot")
       }
 
       if (this.is_hit) {
         this.status.is_hit = true
         this.events = []
-        return this.send_event("hit").then( (res) => {
+        return this.send_event("hit").then((res) => {
           this.is_hit = false
-          this.just_spotted = false  
+          this.just_spotted = false
           return res
         })
       }
@@ -464,7 +473,7 @@ export class Robot {
       // check collision
       if (this.status.wall_collide) {
         this.events = []
-        return this.send_event("wall-collide").then( (res) => {
+        return this.send_event("wall-collide").then((res) => {
           this.just_spotted = false
           return res
         })
@@ -473,7 +482,7 @@ export class Robot {
       // notify idle
       if (this.events.length == 0) {
         // check if it is hit
-        return this.send_event("idle").then( (res) => {
+        return this.send_event("idle").then((res) => {
           this.just_spotted = false
           return res
         })
@@ -508,10 +517,12 @@ export class Robot {
     this.inspect(this.id, this.event_counter, undefined, JSON.stringify(data, null, 2))
     let events: Event[]
     let res: Event[] = []
-    if (data instanceof Event) {
-      events = [data as Event]
-    } else if (Array.isArray(data)) {
-      events = data
+    if (typeof (data) === "object") {
+      if (Array.isArray(data)) {
+        events = data
+      } else {
+        events = [data as Event]
+      }
     } else {
       events = []
     }
