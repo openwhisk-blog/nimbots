@@ -5,9 +5,10 @@
   import { URL_LOGIN, VERSION } from "./const";
   import { BattleWeb } from "./battleweb";
   import { onMount, afterUpdate, onDestroy } from "svelte";
-  import { inspector, source } from "./store";
+  import { inspector, source, submitting } from "./store";
   import { log } from "./robot";
   import { rumblePublic } from "./rumble";
+  import Submit from "./Submit.svelte";
 
   export let base: string;
   export let ow: OpenWhisk;
@@ -204,12 +205,14 @@
           <canvas id="arena" width="500" height="500" />
         </div>
       </div>
-      <div class="row">
-        <div class="column column-50 column-offset-5">
-          <h3>{status}</h3>
+      {#if $submitting != ''}
+        <Submit />
+      {:else if !ready}
+        <div class="row">
+          <div class="column column-50 column-offset-5">
+            <h3>{status}</h3>
+          </div>
         </div>
-      </div>
-      {#if !ready}
         <div class="row">
           <div class="column column-25">
             <label for="enemy">Enemy Robot</label>
@@ -249,14 +252,6 @@
             </select>
           </div>
         </div>
-        <!--
-        <div class="row">
-          <div class="column column-50">
-            <button class="center">Submit my robot to FAAS Wars Competition</button>
-          </div>
-        </div>
-        <p><b>NOTE:</b> only one robot per user can be submitted.</p>
-          -->
         <div class="row">
           <div class="column column-25">
             <button id="done" on:click={selected}>Start the Battle</button>
@@ -306,10 +301,10 @@
           <div class="row">
             <div class="column column-25">
               <button
-                id="logout"
+                id="submit"
                 on:click={() => {
-                  location.href = '/';
-                }}>Logout</button>
+                  submitting.set(myBot);
+                }}>Submit to FAAS WARS</button>
             </div>
             <div class="column column-25">
               <select bind:value={robotType}>
@@ -319,6 +314,7 @@
               </select>
             </div>
           </div>
+          <p><b>NOTE:</b> only one robot per user can be submitted.</p>
         {/if}
       {:else}
         <div class="row">
