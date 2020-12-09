@@ -30,12 +30,20 @@ class Logger {
   actionOn = false
   eventOn = false
   statesOn = false
-  filter = (n: number) => true
+  stateInterval = 1
+  hitOn = false
 
   state(n: number, state0: string, state1: string) {
     if (this.statesOn) {
-      if (this.filter(n))
-        console.log(n, "champ:", state0, "enemy:", state1)
+      if ((n % this.stateInterval) == 0) {
+        console.log(n, state0, state1)
+      }
+    }
+  }
+
+  hit(n: number, state: string) {
+    if (this.hitOn) {
+      console.log("*** hit", n, state)
     }
   }
 
@@ -199,7 +207,7 @@ export class Robot {
     let json = JSON.stringify(msg, null, 2)
     ++this.event_counter
     this.inspect(this.id, this.event_counter, json, undefined)
-    log.event(msg)
+    log.event(this.id, JSON.stringify(msg))
     this.waiting_for_response = true
     return fetch(this.url, {
       "method": 'POST',
@@ -312,10 +320,19 @@ export class Robot {
           this.hit_robot(enemy_robot.x, enemy_robot.y)
           b = null
           this.bullets.splice(j, 1)
+          log.hit(enemy_robot.id, enemy_robot.state())
           break
         }
       }
     }
+  }
+
+  state() {
+    if (this.me) {
+      let me = this.me
+      return `${me.id}: e=${Math.floor(me.hp)} x=${Math.floor(me.x)} y=${Math.floor(me.y)} angle=${Math.floor(me.angle)} tank=${Math.floor(me.tank_angle)} turret=${Math.floor(me.turret_angle)}`
+    }
+    return ""
   }
 
   async update(): Promise<boolean> {

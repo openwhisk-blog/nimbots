@@ -81,12 +81,7 @@ export class Battle {
     if (Battle.robots.length != 2) {
       return ""
     }
-    // pick the robot
-    let me = Battle.robots[i].me
-    //console.log(me)
-    if (me)
-      return `e=${Math.floor(me.hp)} x=${Math.floor(me.x)} y=${Math.floor(me.y)} angle=${Math.floor(me.angle)} tank=${Math.floor(me.tank_angle)} turret=${Math.floor(me.turret_angle)}`
-    return ""
+    return Battle.robots[i].state()
   }
 
   completed_request(msg: string, ok: boolean) {

@@ -7,10 +7,11 @@ const YELL_TIMEOUT = 50
 
 let Assets = new AssetsLoader({
     "splash": 'img/splash.png',
+    "background": 'img/background.png',
     "body": 'img/body.png',
     "body-red": 'img/body-red.png',
     "turret": 'img/turret.png',
-    "radar": 'img/radar.png',
+    "turret-red": 'img/turret-red.png',
     'explosion1-1': 'img/explosion/explosion1-1.png',
     'explosion1-2': 'img/explosion/explosion1-2.png',
     'explosion1-3': 'img/explosion/explosion1-3.png',
@@ -62,10 +63,12 @@ export class BattleWeb extends Battle {
     }
 
     draw() {
-        this.ctx.clearRect(0, 0, this.width, this.height)
+        //this.ctx.clearRect(0, 0, this.width, this.height)
+        this.ctx.drawImage(Assets.get("background"), 0,0,this.width,this.height)
         let newRobots: Robot[] = []
         for (let robot of Battle.robots) {
             let body = robot.id == 0 ? "body" : "body-red"
+            let turret = robot.id == 0 ? "turret" : "turret-red"
             if (robot.hp <= 0) {
                 Battle.explosions.push({
                     x: robot.x,
@@ -103,11 +106,11 @@ export class BattleWeb extends Battle {
             this.ctx.fillText(text, textX, textY)
 
             this.ctx.rotate(degrees2radians(robot.tank_angle))
-            this.ctx.drawImage(Assets.get(body), -(38 / 2), -(36 / 2), 38, 36)
+            this.ctx.drawImage(Assets.get(body), -(50 / 2), -(50 / 2), 50, 50)
             this.ctx.rotate(degrees2radians(robot.turret_angle))
-            this.ctx.drawImage(Assets.get("turret"), -(54 / 2), -(20 / 2), 54, 20)
+            this.ctx.drawImage(Assets.get(turret), -(50 / 2), -(25 / 2), 50, 25)
             this.ctx.rotate(degrees2radians(robot.radar_angle))
-            this.ctx.drawImage(Assets.get("radar"), -(16 / 2), -(22 / 2), 16, 22)
+            //this.ctx.drawImage(Assets.get("radar"), -(16 / 2), -(22 / 2), 16, 22)
             this.ctx.restore()
 
             if (robot.bullets.length > 0) {
@@ -115,6 +118,7 @@ export class BattleWeb extends Battle {
                     this.ctx.save()
                     this.ctx.translate(b.x, b.y)
                     this.ctx.rotate(degrees2radians(b.direction))
+                    this.ctx.fillStyle = "#FFFFFF";
                     this.ctx.fillRect(-3, -3, 6, 6)
                     this.ctx.restore()
                 }

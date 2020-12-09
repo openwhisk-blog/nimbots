@@ -14,7 +14,7 @@
   export let ow: OpenWhisk;
 
   let battle: BattleWeb;
-  let msg = "Welcome to the battlefield";
+  let msg = "Get Ready!";
   let status = "Select Opponents";
 
   let ready = false;
@@ -150,7 +150,7 @@
 
     battle.webinit(canvas.getContext("2d"), urls, startAngles);
     ready = true;
-    msg = "Nimbots assembled!";
+    msg = "Starfighters in position!";
     status = "Ready to fight.";
     battle.draw();
   }
@@ -193,6 +193,11 @@
   #red {
     background-color: lightgrey;
     color: red;
+  }
+  button {
+    background-color: #194577;
+    border: 0.1rem solid #0c78c3;
+    color: #eadb0b;
   }
 </style>
 
@@ -276,13 +281,12 @@
         {#if ow === undefined}
           <div class="row">
             <p class="column column-50">
-              This is
-              <b>Nimbots</b>
-              v{VERSION}
-              <a href="https://github.com/openwhisk-blog/nimbots">[GitHub]</a>.
+              Welcome to 
+              <b>FAAS Wars</b>
+              v{VERSION}.
               Please sign up and login to
-              <a href="https://www.nimbella.com">Nimbella</a>
-              to create and edit your robots.<br />
+              <b><a href="https://www.nimbella.com">Nimbella</a></b>
+              to create and edit your starfighters.<br />
             </p>
           </div>
         {:else}
