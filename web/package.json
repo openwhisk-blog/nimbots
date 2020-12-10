@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "cross-fetch": "^3.0.6",
-    "jquery": "^1.11.1",
     "milligram": "^1.4.1",
     "modernizr": "^3.11.4",
     "normalize": "^0.3.1",
