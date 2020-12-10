@@ -12,3 +12,32 @@ button {
     padding: 1px;
     border: 1px solid red;
 }
+
+
+@font-face {
+  font-family: 'Star Jedi Outline';
+  src: url('/font/StarJediOutline.woff2') format('woff2'),
+      url('/font/StarJediOutline.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans';
+  src: url('/font/NotoSans.woff2') format('woff2'),
+      url('/font/NotoSans.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+h1 {
+  font-family: 'Star Jedi Outline';
+  color: rgb(33 95 132);
+}
+
+h2, h3, h4 {
+  font-family: 'Noto Sans';
+  color: rgb(33 95 132);
+}

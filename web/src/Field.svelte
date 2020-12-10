@@ -198,7 +198,7 @@
 <main class="wrapper">
   <nav class="navigation">
     <section class="container">
-      <h1><b>{msg}</b></h1>
+      <h1>{msg}</h1>
       <div class="row">
         <div class="column column-60">
           <canvas id="arena" width="500" height="500" />
