@@ -1,0 +1,14 @@
+button {
+  background-color: #194577;
+  border: 0.1rem solid #0c78c3;
+  color: #eadb0b;
+}
+
+.flag {
+    padding: 2px
+}
+
+.flag-border {
+    padding: 1px;
+    border: 1px solid red;
+}

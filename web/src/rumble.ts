@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch'
-import { URL_REGISTER, URL_PUBLISH, URL_PUBLIC } from './const'
+import { URL_REGISTER, URL_SUBMIT, URL_PUBLIC } from './const'
 
 export function rumbleSave(name: string, code: string): Promise<string> {
     let data = {
@@ -13,25 +13,25 @@ export function rumbleSave(name: string, code: string): Promise<string> {
         },
         body: JSON.stringify(data)
     })
-    .then((resp)=> resp.text())
-    .then((value)=> value)
+        .then((resp) => resp.text())
+        .then((value) => value)
 }
 
-export function rumblePublish(name: string, url: string): Promise<boolean> {
-    let data = {
-        name: name,
-        url: url
+export function rumbleSubmit(namespace: string, data: string): Promise<boolean> {
+    let body = {
+        namespace: namespace,
+        data: data
     }
-    return fetch(URL_PUBLISH, {
+    return fetch(URL_SUBMIT, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(body)
     })
-    .then((resp)=> resp.text())
-    .then((value) => true)
-    .catch((err) => false) 
+        .then((resp) => resp.text())
+        .then((value) => true)
+        .catch((err) => false)
 }
 
 interface Enemy {
@@ -41,6 +41,6 @@ interface Enemy {
 
 export async function rumblePublic(): Promise<Enemy[]> {
     return fetch(URL_PUBLIC)
-    .then((resp)=> resp.json())
-    .catch((err)=> [])
+        .then((resp) => resp.json())
+        .catch((err) => [])
 }

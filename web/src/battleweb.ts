@@ -96,7 +96,8 @@ export class BattleWeb extends Battle {
             let text = `${robot.hp}/${HP}`
             // check yelling
             if (robot.is_yell && (robot.yell_ts < YELL_TIMEOUT)) {
-                this.ctx.font = "17px Verdana"
+                this.ctx.fillStyle = "#FFFFFF";
+                this.ctx.font = "18px Verdana"
                 text = robot.yell_msg
                 robot.yell_ts++
             } else {

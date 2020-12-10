@@ -1,5 +1,8 @@
 <script lang="ts">
   import "normalize.css/normalize.css";
+  import "milligram/dist/milligram.min.css";
+  import "./style.css"
+
   import Field from "./Field.svelte";
   import Editor from "./Editor.svelte";
   import { source } from "./store";

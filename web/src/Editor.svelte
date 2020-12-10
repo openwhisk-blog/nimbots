@@ -3,7 +3,7 @@
   import { onDestroy, onMount } from "svelte";
   import { source } from "./store";
   import type { OpenWhisk } from "./openwhisk";
-  import { rumbleSave, rumblePublish} from './rumble'
+  import { rumbleSave} from './rumble'
 
   export let ow: OpenWhisk;
 
@@ -58,22 +58,6 @@
     });
     await rumbleSave(`${ow.namespace}:${$source}`, code)    
   }
-
-  async function publish() {
-    let name = $source;
-    name = name.split(".")[0]
-    let namespace = ow.namespace;
-    let botname =  namespace.split("-")[0] + "/" + name
-    if(confirm("Are you sure you want everyone can see your robot?")) {
-      let url = `${ow.namespace}/default/${name}`
-      let res = await rumblePublish(botname, url)
-      if(res)
-        alert("Published as "+botname)
-      else
-        alert("Error! Cannot publish your robot")
-      source.set("")
-    }
-  }
 </script>
 
 <main class="wrapper">
@@ -97,8 +81,6 @@
         <button id="done" on:click={cancel}>Cancel</button>
         &nbsp;
         <button id="done" on:click={del}>Delete</button>
-        &nbsp;
-        <button id="done" on:click={publish}>Publish</button>
       </div>
       <div class="float-right">
         <h3>

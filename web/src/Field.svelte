@@ -1,5 +1,4 @@
 <script lang="ts">
-  import "milligram/dist/milligram.min.css";
   import fetch from "cross-fetch";
   import type { OpenWhisk } from "./openwhisk";
   import { URL_LOGIN, VERSION } from "./const";
@@ -186,18 +185,13 @@
     float: left;
   }
 
-  #blue {
-    background-color: lightgrey;
-    color: blue;
+  #cyan {
+    background-color: rgb(155, 155, 187);
+    color: rgb(131, 242, 225);
   }
   #red {
     background-color: lightgrey;
     color: red;
-  }
-  button {
-    background-color: #194577;
-    border: 0.1rem solid #0c78c3;
-    color: #eadb0b;
   }
 </style>
 
@@ -211,7 +205,7 @@
         </div>
       </div>
       {#if $submitting != ''}
-        <Submit />
+        <Submit {ow} />
       {:else if !ready}
         <div class="row">
           <div class="column column-50 column-offset-5">
@@ -281,10 +275,9 @@
         {#if ow === undefined}
           <div class="row">
             <p class="column column-50">
-              Welcome to 
+              Welcome to
               <b>FAAS Wars</b>
-              v{VERSION}.
-              Please sign up and login to
+              v{VERSION}. Please sign up and login to
               <b><a href="https://www.nimbella.com">Nimbella</a></b>
               to create and edit your starfighters.<br />
             </p>
@@ -323,6 +316,7 @@
       {:else}
         <div class="row">
           <div class="column column-20">
+            <br />
             <button id="fight" on:click={toggle}>
               {#if fighting}Suspend{:else}Fight!{/if}
             </button>
@@ -339,8 +333,12 @@
               disabled={myBots.length == 0}>Edit</button>
           </div>
           <div class="column column-20">
-            <tt>Mine:&nbsp;&nbsp;<span id="blue">blue robot</span></tt><br />
-            <tt>Enemy:&nbsp;<span id="red">red robot</span></tt>
+            <tt>
+              Champ:&nbsp;<span id="cyan">&nbsp;cyan&nbsp;robot&nbsp;</span>
+            </tt><br />
+            <tt>
+              Enemy:&nbsp;<span id="red">&nbsp;red&nbsp;&nbsp;robot&nbsp;</span>
+            </tt>
           </div>
           <div class="column column-10">
             <label>
