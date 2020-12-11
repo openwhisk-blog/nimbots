@@ -5,3 +5,5 @@ export const inspector = writable([{n: 0, req: "", res:"", state:""},{n: 0, req:
 export const source = writable("")
 
 export const submitting = writable("")
+
+export const board = writable({show: false, date: ""})

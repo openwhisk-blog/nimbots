@@ -1,11 +1,13 @@
 <script lang="ts">
   import "normalize.css/normalize.css";
   import "milligram/dist/milligram.min.css";
-  import "./style.css"
+  import "./style.css";
 
   import Field from "./Field.svelte";
   import Editor from "./Editor.svelte";
-  import { source } from "./store";
+  import Board from "./Board.svelte";
+
+  import { source, board } from "./store";
   import { OpenWhisk } from "./openwhisk";
 
   // decode login
@@ -24,12 +26,14 @@
   }
 
   // calculate api server location
-  let apiserver = "apigcp.nimbella.io"
+  let apiserver = "apigcp.nimbella.io";
   let path = "/api/v1/web/";
   let base = "https://" + apiserver + path;
 </script>
 
-{#if $source == ''}
+{#if $board.show}
+  <Board/>
+{:else if $source == ''}
   <Field {base} {ow} />
 {:else}
   <Editor {ow} />

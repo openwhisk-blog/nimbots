@@ -167,6 +167,11 @@ export class Battle {
     clearTimeout(this.timeout)
   }
 
+  terminate() {
+    this.stop()
+    this.end_battle(-2)
+  }
+
   start() {
     this.suspended = false
     this.tracing = false

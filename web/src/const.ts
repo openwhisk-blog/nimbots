@@ -13,6 +13,7 @@ export const URL_LOGIN = `https://apigcp.nimbella.io/api/v1/web/nimbella/user/lo
 export const URL_REGISTER = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/register`
 export const URL_SUBMIT = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/submit`
 export const URL_PUBLIC = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/public`
+export const URL_STATUS = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/status`
 
 if(DEBUG) {
     console.log("URL_LOGIN", URL_LOGIN)

@@ -3,8 +3,9 @@
   import type { OpenWhisk } from "./openwhisk";
   import { URL_LOGIN, VERSION } from "./const";
   import { BattleWeb } from "./battleweb";
+  import { AssetsLoader } from './util';
   import { onMount, afterUpdate, onDestroy } from "svelte";
-  import { inspector, source, submitting } from "./store";
+  import { inspector, source, submitting, board } from "./store";
   import { log } from "./robot";
   import { rumblePublic } from "./rumble";
   import Submit from "./Submit.svelte";
@@ -13,7 +14,7 @@
   export let ow: OpenWhisk;
 
   let battle: BattleWeb;
-  let msg = "Get Ready!";
+  let msg = (ow === undefined) ? "in a galaxy far far away..." : "Choose opponents";
   let status = "Select Opponents";
 
   let ready = false;
@@ -80,12 +81,15 @@
   });
 
   function finish(winner: number) {
-    if (winner == -1) {
-      msg = "Draw.";
+    msg = "Game over"
+    if (winner == -2) {
+      image = "ready"
+    } else if (winner == -1) {
+      image = "draw"
     } else if (winner == 0) {
-      msg = "You win!";
+      image = "won"
     } else {
-      msg = "You lose...";
+      image = "lose"
     }
     status = "Select Opponents";
     ready = false;
@@ -120,15 +124,22 @@
     editing = true;
   }
 
-  let image = new Image();
-  image.src = "/img/splash.png";
+
+  let image = (ow === undefined) ? "splash" : "ready"
+  let Images = new AssetsLoader({
+    "splash": 'img/splash.png',
+    "ready": "img/ready.png",
+    "lose": "img/lose.png",
+    "won": "img/won.png",
+    "draw": "img/draw.png"
+  })
 
   function splash() {
     //console.log("splash")
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
     let ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, 500, 500);
-    ctx.drawImage(image, 0, 0);
+    ctx.drawImage(Images.get(image), 0, 0);
   }
 
   afterUpdate(() => {
@@ -174,7 +185,7 @@
       suspended
     );
     updateBots();
-    image.onload = splash;
+    Images.loadAll( () => splash())
   });
   onDestroy(unsubscribeSource);
 </script>
@@ -209,7 +220,14 @@
       {:else if !ready}
         <div class="row">
           <div class="column column-50 column-offset-5">
-            <h3>{status}</h3>
+            <h3>
+              <!-- svelte-ignore a11y-missing-attribute -->
+              <a href="#" on:click={(event) => {
+                  console.log("click")
+                  board.set({"show":true,"date":""})
+                  event.preventDefault();
+                }}>Leaderboard</a>
+            </h3>
           </div>
         </div>
         <div class="row">
@@ -315,6 +333,11 @@
         {/if}
       {:else}
         <div class="row">
+          <div class="column column-50 column-offset-5">
+            <h3>{status}</h3>
+          </div>
+        </div>
+        <div class="row">
           <div class="column column-20">
             <br />
             <button id="fight" on:click={toggle}>
@@ -325,7 +348,7 @@
               on:click={() => {
                 ready = false;
                 fighting = false;
-                battle.stop();
+                battle.terminate();
               }}>Stop</button><br />
             <button
               id="edit"
