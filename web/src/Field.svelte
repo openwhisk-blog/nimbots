@@ -3,19 +3,20 @@
   import type { OpenWhisk } from "./openwhisk";
   import { URL_LOGIN, VERSION } from "./const";
   import { BattleWeb } from "./battleweb";
-  import { AssetsLoader } from './util';
+  import { AssetsLoader } from "./util";
   import { onMount, afterUpdate, onDestroy } from "svelte";
   import { inspector, source, submitting, board } from "./store";
   import { log } from "./robot";
   import { rumblePublic } from "./rumble";
   import Submit from "./Submit.svelte";
-import type { Battle } from "./battle";
+  import type { Battle } from "./battle";
 
   export let base: string;
   export let ow: OpenWhisk;
 
   let battle: BattleWeb;
-  let msg = (ow === undefined) ? "in a galaxy far far away..." : "Choose opponents";
+  let msg =
+    ow === undefined ? "in a galaxy far far away..." : "Choose opponents";
   let status = "Select Opponents";
 
   let ready = false;
@@ -82,15 +83,15 @@ import type { Battle } from "./battle";
   });
 
   function finish(winner: number) {
-    msg = "Game over"
+    msg = "Game over";
     if (winner == -2) {
-      image = "ready"
+      image = "ready";
     } else if (winner == -1) {
-      image = "draw"
+      image = "draw";
     } else if (winner == 0) {
-      image = "won"
+      image = "won";
     } else {
-      image = "lose"
+      image = "lose";
     }
     status = "Select Opponents";
     ready = false;
@@ -125,15 +126,14 @@ import type { Battle } from "./battle";
     editing = true;
   }
 
-
-  let image = (ow === undefined) ? "splash" : "ready"
+  let image = ow === undefined ? "splash" : "ready";
   let Images = new AssetsLoader({
-    "splash": 'img/splash.png',
-    "ready": "img/ready.png",
-    "lose": "img/lose.png",
-    "won": "img/won.png",
-    "draw": "img/draw.png"
-  })
+    splash: "img/splash.png",
+    ready: "img/ready.png",
+    lose: "img/lose.png",
+    won: "img/won.png",
+    draw: "img/draw.png",
+  });
 
   function splash() {
     //console.log("splash")
@@ -186,7 +186,7 @@ import type { Battle } from "./battle";
       suspended
     );
     updateBots();
-    Images.loadAll( () => splash())
+    Images.loadAll(() => splash());
   });
   onDestroy(unsubscribeSource);
 </script>
@@ -201,7 +201,7 @@ import type { Battle } from "./battle";
     color: rgb(66, 168, 205);
   }
   #red {
-    color:  rgb(211, 19,19)
+    color: rgb(211, 19, 19);
   }
 </style>
 
@@ -221,9 +221,11 @@ import type { Battle } from "./battle";
           <div class="column column-50 column-offset-5">
             <h3>
               <!-- svelte-ignore a11y-missing-attribute -->
-              <a href="#" on:click={(event) => {
-                  console.log("click")
-                  board.set({"show":true,"date":""})
+              <a
+                href="#"
+                on:click={(event) => {
+                  console.log('click');
+                  board.set({ show: true, date: '' });
                   event.preventDefault();
                 }}>Leaderboard</a>
             </h3>
@@ -294,8 +296,8 @@ import type { Battle } from "./battle";
             <p class="column column-50">
               Welcome to
               <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
-              v{VERSION}. Please sign up and login to Nimbella
-              to create and edit your starfighters.<br />
+              v{VERSION}. Please sign up and login to Nimbella to create and
+              edit your starfighters.<br />
             </p>
           </div>
         {:else}
@@ -355,7 +357,7 @@ import type { Battle } from "./battle";
           </div>
           <div class="column column-20">
             <h3 id="cyan">{battle.robotName(0)} (you)</h3>
-            <h3 id="red">{battle.robotName(1)} (enemy)</h3>            
+            <h3 id="red">{battle.robotName(1)} (enemy)</h3>
           </div>
           <div class="column column-10">
             <label>
