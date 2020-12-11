@@ -84,6 +84,13 @@ export class Battle {
     return Battle.robots[i].state()
   }
 
+  robotName(i: number) {
+    if (Battle.robots.length != 2) {
+      return ""
+    }
+    return Battle.robots[i].name
+  } 
+
   completed_request(msg: string, ok: boolean) {
     if (!ok) {
       this.suspended = true

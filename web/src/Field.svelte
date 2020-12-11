@@ -9,6 +9,7 @@
   import { log } from "./robot";
   import { rumblePublic } from "./rumble";
   import Submit from "./Submit.svelte";
+import type { Battle } from "./battle";
 
   export let base: string;
   export let ow: OpenWhisk;
@@ -197,12 +198,10 @@
   }
 
   #cyan {
-    background-color: rgb(155, 155, 187);
-    color: rgb(131, 242, 225);
+    color: rgb(66, 168, 205);
   }
   #red {
-    background-color: lightgrey;
-    color: red;
+    color:  rgb(211, 19,19)
   }
 </style>
 
@@ -294,9 +293,8 @@
           <div class="row">
             <p class="column column-50">
               Welcome to
-              <b>FAAS Wars</b>
-              v{VERSION}. Please sign up and login to
-              <b><a href="https://www.nimbella.com">Nimbella</a></b>
+              <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
+              v{VERSION}. Please sign up and login to Nimbella
               to create and edit your starfighters.<br />
             </p>
           </div>
@@ -356,12 +354,8 @@
               disabled={myBots.length == 0}>Edit</button>
           </div>
           <div class="column column-20">
-            <tt>
-              Champ:&nbsp;<span id="cyan">&nbsp;cyan&nbsp;robot&nbsp;</span>
-            </tt><br />
-            <tt>
-              Enemy:&nbsp;<span id="red">&nbsp;red&nbsp;&nbsp;robot&nbsp;</span>
-            </tt>
+            <h3 id="cyan">{battle.robotName(0)} (you)</h3>
+            <h3 id="red">{battle.robotName(1)} (enemy)</h3>            
           </div>
           <div class="column column-10">
             <label>

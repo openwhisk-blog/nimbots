@@ -111,6 +111,7 @@ export class Robot {
   data: object = {}
   id: number = 0
   hp: number = HP
+  name: string
 
   tank_angle: number = 0
   turret_angle: number = 0
@@ -153,6 +154,7 @@ export class Robot {
     this.url = url
     this.completed_request = completed_request
     this.hit_robot = hit_robot
+    this.name = url.split("/").pop()
   }
 
   init(enemies: Robot[], tank_angle: number, turret_angle: number) {
