@@ -225,7 +225,7 @@
         </h3>
       </div>
       <div class="row">
-        <div class="column column-25 column-offset">
+        <div class="column column-left column-offset">
           <label for="enemy">Enemy Robot</label>
           <select bind:value={enemyBot} id="enemy">
             <option value="nimbots/default/Terminator">
@@ -248,7 +248,7 @@
             {/each}
           </select>
         </div>
-        <div class="column column-25">
+        <div class="column column-right">
           <label for="mybot">Champ Fighter</label>
           <select bind:value={myBot} id="enemy">
             {#if myBots.length == 0}
@@ -264,10 +264,10 @@
         </div>
       </div>
       <div class="row">
-        <div class="column column-25 column-offset">
+        <div class="column column-left column-offset">
           <button id="done" on:click={selected}>Start the Battle</button>
         </div>
-        <div class="column column-25">
+        <div class="column column-right">
           {#if ow === undefined}
             <button
               id="login"
@@ -275,7 +275,7 @@
                 location.href = URL_LOGIN;
               }}>Login to Nimbella</button>
           {:else}
-            <div class="column column-25">
+            <div class="column column-right">
               <button
                 id="edit"
                 on:click={edit}
@@ -295,10 +295,10 @@
         </div>
       {:else}
         <div class="row">
-          <div class="column column-25 column-offset">
+          <div class="column column-left column-offset">
             <button id="create" on:click={create}>Create New Fighter</button>
           </div>
-          <div class="column column-25">
+          <div class="column column-right">
             <input
               type="text"
               bind:value={robotName}
@@ -307,14 +307,14 @@
           </div>
         </div>
         <div class="row">
-          <div class="column column-25 column-offset">
+          <div class="column column-left column-offset">
             <button
               id="submit"
               on:click={() => {
                 submitting.set(myBot);
               }}>Submit to FAAS WARS</button>
           </div>
-          <div class="column column-25 float-right">
+          <div class="column column-right">
             <select bind:value={robotType}>
               <option value="js">JavaScript</option>
               <option value="py">Python</option>
@@ -324,7 +324,7 @@
         </div>
         <h4>
           <b>NOTE:</b>
-          only one robot per user can be submitted.
+          only one fighter per user can be submitted.
         </h4>
       {/if}
     {:else}
@@ -340,7 +340,7 @@
         </h4>
       </div>
       <div class="row">
-        <div class="column column-25 column-offset">
+        <div class="column column-left column-offset">
           <br />
           <button id="fight" on:click={toggle}>
             {#if fighting}Suspend{:else}Fight!{/if}
@@ -357,7 +357,7 @@
             on:click={edit}
             disabled={myBots.length == 0}>Edit</button>
         </div>
-        <div class="column column-25 float-right">
+        <div class="column column-right">
           <br />
           <label>
             <input type="checkbox" bind:checked={debug} />
@@ -370,10 +370,10 @@
       </div>
       {#if debug}
         <div class="row">
-          <div class="column column-25 column-offset">
+          <div class="column column-left column-offset">
             <button id="step" on:click={trace}>Trace</button>
           </div>
-          <div class="column column-25 float-right">
+          <div class="column column-right">
             Trace:&nbsp;
             <label>
               <input type="checkbox" bind:checked={log.eventOn} />

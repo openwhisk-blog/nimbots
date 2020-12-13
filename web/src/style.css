@@ -75,15 +75,14 @@ canvas {
     margin-left: 0;
     margin-right: 0;
   }
-  row .column.column-left {
+  .row .column.column-left {
     flex: 0 0 25%;
-    max-width: 25%;
+    max-width: 50%;
   }
-  row .column.column-right {
+  .row .column.column-right {
     flex: 0 0 25%;
-    max-width: 25%;
+    max-width: 50%;
   }
-
 }
 
 @media screen and (min-width: 800px) {
