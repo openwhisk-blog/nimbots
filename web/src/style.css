@@ -5,43 +5,120 @@ button {
 }
 
 .flag {
-    padding: 2px
+  padding: 2px;
 }
 
 .flag-border {
-    padding: 1px;
-    border: 1px solid red;
+  padding: 1px;
+  border: 1px solid red;
 }
 
-
 @font-face {
-  font-family: 'Star Jedi Outline';
-  src: url('/font/StarJediOutline.woff2') format('woff2'),
-      url('/font/StarJediOutline.woff') format('woff');
+  font-family: "Star Jedi Outline";
+  src: url("/font/StarJediOutline.woff2") format("woff2"),
+    url("/font/StarJediOutline.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Noto Sans';
-  src: url('/font/NotoSans.woff2') format('woff2'),
-      url('/font/NotoSans.woff') format('woff');
+  font-family: "Noto Sans";
+  src: url("/font/NotoSans.woff2") format("woff2"),
+    url("/font/NotoSans.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 h1 {
-  font-family: 'Star Jedi Outline';
+  font-family: "Star Jedi Outline";
   color: rgb(33 95 132);
 }
 
-h2, h3, h4 {
-  font-family: 'Noto Sans';
+h2,
+h3,
+h4 {
+  font-family: "Noto Sans";
   color: rgb(33 95 132);
 }
 
 a {
-color: #0c78c3;
+  color: #0c78c3;
+}
+
+canvas {
+  padding: 0;
+  display: block;
+  width: 500px;
+  height: 500px;
+}
+
+@media screen and (min-width: 600px) {
+  .row .column.column-offset {
+    margin-left: 0%;
+  }
+  .center {
+    margin: 0;
+  }
+  div.center {
+    margin-left: 0;
+  }
+  canvas {
+    margin: 0;
+  }
+  h1,
+  a,
+  h3,
+  h4 {
+    text-align: left;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  row .column.column-left {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  row .column.column-right {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+
+}
+
+@media screen and (min-width: 800px) {
+  .row .column.column-offset {
+    margin-left: 25%;
+  }
+  .center {
+    margin: auto;
+  }
+  div.center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  canvas {
+    padding: 0;
+    margin: auto;
+    display: block;
+    width: 500px;
+    height: 500px;
+  }
+  h1,
+  a,
+  h3,
+  h4 {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  row .column.column-left {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+  row .column.column-right {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
 }

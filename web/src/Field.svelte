@@ -203,210 +203,208 @@
   #red {
     color: rgb(211, 19, 19);
   }
+
 </style>
 
 <main class="wrapper">
-  <nav class="navigation">
-    <section class="container">
-      <h1>{msg}</h1>
+  <section class="container">
+    <h1>{msg}</h1>
+    <div class="row"><canvas id="arena" width="500" height="500" /></div>
+    {#if $submitting != ''}
+      <Submit {ow} />
+    {:else if !ready}
       <div class="row">
-        <div class="column column-60">
-          <canvas id="arena" width="500" height="500" />
+        <h3>
+          <a
+            href="-"
+            on:click={(event) => {
+              console.log('click');
+              board.set({ show: true, date: '' });
+              event.preventDefault();
+            }}>Leaderboard</a>
+        </h3>
+      </div>
+      <div class="row">
+        <div class="column column-25 column-offset">
+          <label for="enemy">Enemy Robot</label>
+          <select bind:value={enemyBot} id="enemy">
+            <option value="nimbots/default/Terminator">
+              sample/Terminator
+            </option>
+            <option value="nimbots/default/LookAndShot">
+              sample/LookAndShot
+            </option>
+            <option value="nimbots/default/RandomTurn">
+              sample/RandomTurn
+            </option>
+            <option value="nimbots/default/BackAndForth">
+              sample/BackAndForth
+            </option>
+            <option value="nimbots/default/LookAround">
+              sample/LookAround
+            </option>
+            {#each enemyBots as enemy}
+              <option value={enemy.url}>{enemy.name}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="column column-25">
+          <label for="mybot">Champ Fighter</label>
+          <select bind:value={myBot} id="enemy">
+            {#if myBots.length == 0}
+              <option value="JsBot">Sample Javascript Fighter</option>
+              <option value="PyBot">Sample Python Fighter</option>
+              <option value="GoBot">Sample Go Fighter</option>
+            {:else}
+              {#each myBots as bot}
+                <option value={bot}>{bot.split('.')[0]}</option>
+              {/each}
+            {/if}
+          </select>
         </div>
       </div>
-      {#if $submitting != ''}
-        <Submit {ow} />
-      {:else if !ready}
-        <div class="row">
-          <div class="column column-50 column-offset-5">
-            <h3>
-              <!-- svelte-ignore a11y-missing-attribute -->
-              <a
-                href="#"
-                on:click={(event) => {
-                  console.log('click');
-                  board.set({ show: true, date: '' });
-                  event.preventDefault();
-                }}>Leaderboard</a>
-            </h3>
-          </div>
+      <div class="row">
+        <div class="column column-25 column-offset">
+          <button id="done" on:click={selected}>Start the Battle</button>
         </div>
-        <div class="row">
-          <div class="column column-25">
-            <label for="enemy">Enemy Robot</label>
-            <select bind:value={enemyBot} id="enemy">
-              <option value="nimbots/default/Terminator">
-                sample/Terminator
-              </option>
-              <option value="nimbots/default/LookAndShot">
-                sample/LookAndShot
-              </option>
-              <option value="nimbots/default/RandomTurn">
-                sample/RandomTurn
-              </option>
-              <option value="nimbots/default/BackAndForth">
-                sample/BackAndForth
-              </option>
-              <option value="nimbots/default/LookAround">
-                sample/LookAround
-              </option>
-              {#each enemyBots as enemy}
-                <option value={enemy.url}>{enemy.name}</option>
-              {/each}
-            </select>
-          </div>
-          <div class="column column-25">
-            <label for="mybot">My Robot</label>
-            <select bind:value={myBot} id="enemy">
-              {#if myBots.length == 0}
-                <option value="JsBot">Sample Javascript Robot</option>
-                <option value="PyBot">Sample Python Robot</option>
-                <option value="GoBot">Sample Go Robot</option>
-              {:else}
-                {#each myBots as bot}
-                  <option value={bot}>{bot.split('.')[0]}</option>
-                {/each}
-              {/if}
-            </select>
-          </div>
-        </div>
-        <div class="row">
-          <div class="column column-25">
-            <button id="done" on:click={selected}>Start the Battle</button>
-          </div>
-          <div class="column column-25">
-            {#if ow === undefined}
-              <button
-                id="login"
-                on:click={() => {
-                  location.href = URL_LOGIN;
-                }}>Login to Nimbella</button>
-            {:else}
-              <div class="column column-25">
-                <button
-                  id="edit"
-                  on:click={edit}
-                  disabled={myBots.length == 0}>Edit my Robot</button>
-              </div>
-            {/if}
-          </div>
-        </div>
-        {#if ow === undefined}
-          <div class="row">
-            <p class="column column-50">
-              Welcome to
-              <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
-              v{VERSION}. Please sign up and login to Nimbella to create and
-              edit your starfighters.<br />
-            </p>
-          </div>
-        {:else}
-          <div class="row">
-            <div class="column column-25">
-              <button id="create" on:click={create}>Create New Robot</button>
-            </div>
-            <div class="column column-25">
-              <input
-                type="text"
-                bind:value={robotName}
-                placeholder="robot name"
-                id="botname" />
-            </div>
-          </div>
-          <div class="row">
+        <div class="column column-25">
+          {#if ow === undefined}
+            <button
+              id="login"
+              on:click={() => {
+                location.href = URL_LOGIN;
+              }}>Login to Nimbella</button>
+          {:else}
             <div class="column column-25">
               <button
-                id="submit"
-                on:click={() => {
-                  submitting.set(myBot);
-                }}>Submit to FAAS WARS</button>
+                id="edit"
+                on:click={edit}
+                disabled={myBots.length == 0}>Edit my Fighter</button>
             </div>
-            <div class="column column-25">
-              <select bind:value={robotType}>
-                <option value="js">JavaScript</option>
-                <option value="py">Python</option>
-                <option value="go">Golang</option>
-              </select>
-            </div>
+          {/if}
+        </div>
+      </div>
+      {#if ow === undefined}
+        <div class="row">
+          <div class="column column-50 column-offset">
+            Welcome to
+            <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
+            v{VERSION}. Please sign up and login to Nimbella to create and edit
+            your starfighters.<br />
           </div>
-          <p><b>NOTE:</b> only one robot per user can be submitted.</p>
-        {/if}
+        </div>
       {:else}
         <div class="row">
-          <div class="column column-50 column-offset-5">
-            <h3>{status}</h3>
+          <div class="column column-25 column-offset">
+            <button id="create" on:click={create}>Create New Fighter</button>
+          </div>
+          <div class="column column-25">
+            <input
+              type="text"
+              bind:value={robotName}
+              placeholder="robot name"
+              id="botname" />
           </div>
         </div>
         <div class="row">
-          <div class="column column-20">
-            <br />
-            <button id="fight" on:click={toggle}>
-              {#if fighting}Suspend{:else}Fight!{/if}
-            </button>
-            <br />
+          <div class="column column-25 column-offset">
             <button
+              id="submit"
               on:click={() => {
-                ready = false;
-                fighting = false;
-                battle.terminate();
-              }}>Stop</button><br />
-            <button
-              id="edit"
-              on:click={edit}
-              disabled={myBots.length == 0}>Edit</button>
+                submitting.set(myBot);
+              }}>Submit to FAAS WARS</button>
           </div>
-          <div class="column column-20">
-            <h3 id="cyan">{battle.robotName(0)} (you)</h3>
-            <h3 id="red">{battle.robotName(1)} (enemy)</h3>
-          </div>
-          <div class="column column-10">
-            <label>
-              <input type="checkbox" bind:checked={debug} />
-              Debug<br />
-              <a
-                href="https://apigcp.nimbella.io/wb/?command=activation+list"
-                target="workbench">Logs</a>
-            </label>
+          <div class="column column-25 float-right">
+            <select bind:value={robotType}>
+              <option value="js">JavaScript</option>
+              <option value="py">Python</option>
+              <option value="go">Golang</option>
+            </select>
           </div>
         </div>
-        {#if debug}
-          <div class="row">
-            <div class="column column-25">
-              <button id="step" on:click={trace}>Trace</button>
-            </div>
-            <div class="column column-25">
-              Trace:&nbsp;
-              <label>
-                <input type="checkbox" bind:checked={log.eventOn} />
-                Events&nbsp;
-              </label>
-              <label>
-                <input type="checkbox" bind:checked={log.requestOn} />
-                Requests&nbsp;
-              </label>
-              <label>
-                <input type="checkbox" bind:checked={log.actionOn} />
-                Actions&nbsp;
-              </label>
-              (open console)
-            </div>
-          </div>
-          <div class="row">
-            <div class="column column-50">
-              <b>[Me] {$inspector[0].state}</b><br />
-              Request/<b>Response</b>
-              #{$inspector[0].n}
-              <pre>{$inspector[0].req}<br /><b>{$inspector[0].res}</b>
-              </pre>
-              <b>[Emeny] {$inspector[1].state}</b><br />
-              Request/<b>Response</b>
-              #{$inspector[1].n}
-              <pre>{$inspector[1].req}<br /><b>{$inspector[1].res}</b>
-              </pre>
-            </div>
-          </div>
-        {/if}
+        <h4>
+          <b>NOTE:</b>
+          only one robot per user can be submitted.
+        </h4>
       {/if}
-    </section>
-  </nav>
+    {:else}
+      <div class="row">
+        <h3>{status}</h3>
+      </div>
+      <div class="row">
+        <h4>
+          Champ:
+          <span id="cyan">{battle.robotName(0)}</span>
+          Enemy:
+          <span id="red">{battle.robotName(1)}</span>
+        </h4>
+      </div>
+      <div class="row">
+        <div class="column column-25 column-offset">
+          <br />
+          <button id="fight" on:click={toggle}>
+            {#if fighting}Suspend{:else}Fight!{/if}
+          </button>
+          <br />
+          <button
+            on:click={() => {
+              ready = false;
+              fighting = false;
+              battle.terminate();
+            }}>Stop</button><br />
+          <button
+            id="edit"
+            on:click={edit}
+            disabled={myBots.length == 0}>Edit</button>
+        </div>
+        <div class="column column-25 float-right">
+          <br />
+          <label>
+            <input type="checkbox" bind:checked={debug} />
+            Debug<br />
+            <a
+              href="https://apigcp.nimbella.io/wb/?command=activation+list"
+              target="workbench">Logs</a>
+          </label><br />
+        </div>
+      </div>
+      {#if debug}
+        <div class="row">
+          <div class="column column-25 column-offset">
+            <button id="step" on:click={trace}>Trace</button>
+          </div>
+          <div class="column column-25 float-right">
+            Trace:&nbsp;
+            <label>
+              <input type="checkbox" bind:checked={log.eventOn} />
+              Events&nbsp;
+            </label>
+            <label>
+              <input type="checkbox" bind:checked={log.requestOn} />
+              Requests&nbsp;
+            </label>
+            <label>
+              <input type="checkbox" bind:checked={log.actionOn} />
+              Actions&nbsp;
+            </label>
+            (open console)
+          </div>
+        </div>
+        <div class="row">
+          <div class="column column-50 column-offset">
+            <b>[Me] {$inspector[0].state}</b><br />
+            Request/<b>Response</b>
+            #{$inspector[0].n}
+            <pre>{$inspector[0].req}<br /><b>{$inspector[0].res}</b>
+              </pre>
+            <b>[Emeny] {$inspector[1].state}</b><br />
+            Request/<b>Response</b>
+            #{$inspector[1].n}
+            <pre>{$inspector[1].req}<br /><b>{$inspector[1].res}</b>
+              </pre>
+          </div>
+        </div>
+      {/if}
+    {/if}
+  </section>
 </main>
