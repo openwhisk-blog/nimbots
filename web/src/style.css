@@ -49,21 +49,28 @@ a {
 
 canvas {
   padding: 0;
+  margin: auto;
   display: block;
-  width: 500px;
-  height: 500px;
+  width: 100%;
 }
 
 @media screen and (min-width: 600px) {
+  .container {
+    padding: 0 2px;
+  }
+
   .row .column.column-offset {
     margin-left: 0%;
   }
+
   .center {
     margin: 0;
   }
+
   div.center {
     margin-left: 0;
   }
+
   canvas {
     margin: 0;
   }

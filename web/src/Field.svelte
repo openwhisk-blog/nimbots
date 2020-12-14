@@ -9,6 +9,7 @@
   import { log } from "./robot";
   import { rumblePublic } from "./rumble";
   import Submit from "./Submit.svelte";
+  import Share from './Share.svelte';
   import type { Battle } from "./battle";
 
   export let base: string;
@@ -203,7 +204,6 @@
   #red {
     color: rgb(211, 19, 19);
   }
-
 </style>
 
 <main class="wrapper">
@@ -285,14 +285,13 @@
         </div>
       </div>
       {#if ow === undefined}
-        <div class="row">
-          <div class="column column-50 column-offset">
-            Welcome to
-            <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
-            v{VERSION}. Please sign up and login to Nimbella to create and edit
-            your starfighters.<br />
-          </div>
-        </div>
+        <h4>
+          Welcome to
+          <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
+          v{VERSION}. Please sign up and login to Nimbella to create and edit
+          your starfighters.<br />
+        </h4>
+        <Share/>
       {:else}
         <div class="row">
           <div class="column column-left column-offset">
@@ -322,10 +321,8 @@
             </select>
           </div>
         </div>
-        <h4>
-          <b>NOTE:</b>
-          only one fighter per user can be submitted.
-        </h4>
+        <h4><b>NOTE:</b> only one fighter per user can be submitted.</h4>
+        <Share />
       {/if}
     {:else}
       <div class="row">
