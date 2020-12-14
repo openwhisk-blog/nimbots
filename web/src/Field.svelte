@@ -12,6 +12,7 @@
   import Share from './Share.svelte';
   import type { Battle } from "./battle";
 
+
   export let base: string;
   export let ow: OpenWhisk;
 
@@ -23,6 +24,7 @@
   let ready = false;
   let speed = BattleWeb.speed;
   let debug = false;
+  let extra = ""
 
   let enemyBot: string;
   let fighting = false;
@@ -87,12 +89,16 @@
     msg = "Game over";
     if (winner == -2) {
       image = "ready";
+      extra = "";
     } else if (winner == -1) {
       image = "draw";
+      extra = "";
     } else if (winner == 0) {
       image = "won";
+      extra = "Great Achievement! Share it with your friends!"
     } else {
       image = "lose";
+      extra = ""
     }
     status = "Select Opponents";
     ready = false;
@@ -321,7 +327,7 @@
             </select>
           </div>
         </div>
-        <h4><b>NOTE:</b> only one fighter per user can be submitted.</h4>
+        <h4>{extra}</h4>
         <Share />
       {/if}
     {:else}

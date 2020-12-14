@@ -55,7 +55,7 @@
   <h3>{msg}</h3>
 </div>
 <div class="row">
-  <div class="column column-60">
+  <div class="column column-60 column-offset">
     {#each flags as group, i}
       <div>
         {#each group as flag, j}
@@ -72,7 +72,7 @@
   </div>
 </div>
 <div class="row">
-  <div class="column column-20">
+  <div class="column column-20 column-offset">
     <select bind:value={pick}>
       <option value="25:0">- Select -</option>
       {#each nations as nation, i}
