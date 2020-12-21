@@ -20,7 +20,7 @@
     flag = n < 25 ? flags[n][m] : "";
     disabled = flag == "";
     msg = disabled
-      ? "Either click your country flag or select the name:"
+      ? "Select your country."
       : `Please confirm submitting ${flag} ${$submitting}`;
     flagn = n * 25 + m;
     if (DEBUG) {
@@ -36,17 +36,12 @@
     let name = $submitting.split(".").slice(0, -1).join(".");
     let data = "" + flagn + ":default/" + name;
 
-    if (confirm("Are you sure you want to submit your robot?")) {
+    if (confirm("Are you sure you want to submit your fighter?")) {
       let url = `${ow.namespace}/default/${name}`;
-      let res = await rumbleSubmit(namespace, data);
-      if (res) {
-        alert("Submitted as " + prefix + "/" + name);
-        submitting.set("");
-      } else
-        alert(
-          "Error! Cannot submit your robot. Please report in the community."
-        );
-      source.set("");
+      rumbleSubmit(namespace, data)
+      .then( (res) => {
+         msg = res["message"] ||  "Cannot submit your fighter. Please report in the community."
+      })
     }
   }
 </script>
@@ -54,6 +49,7 @@
 <div class="row">
   <h3>{msg}</h3>
 </div>
+<!-- 
 <div class="row">
   <div class="column column-60 column-offset">
     {#each flags as group, i}
@@ -71,6 +67,7 @@
     {/each}
   </div>
 </div>
+-->
 <div class="row">
   <div class="column column-20 column-offset">
     <select bind:value={pick}>
@@ -88,6 +85,11 @@
     <button
       on:click={() => {
         submitting.set('');
-      }}>Cancel</button>
+      }}>Back</button>
+  </div>
+</div>
+<div class="row">
+  <div class="column column-center column-offset">
+    <h4>You can submit up to 5 fighters. Use a different name for each fighter.</h4>
   </div>
 </div>

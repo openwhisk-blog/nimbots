@@ -29,9 +29,8 @@ export function rumbleSubmit(namespace: string, data: string): Promise<boolean> 
         },
         body: JSON.stringify(body)
     })
-        .then((resp) => resp.text())
-        .then((value) => true)
-        .catch((err) => false)
+        .then((resp) => resp.json())
+        .catch((err) => { return { "message": err } })
 }
 
 interface Enemy {

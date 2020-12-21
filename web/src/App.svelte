@@ -14,6 +14,13 @@
   let url = new URL(location.href);
   let ow: OpenWhisk = undefined;
 
+  if(url.hash.length >1) {
+    console.log(url.hash)
+    localStorage.setItem("referrer", url.hash.substring(1))
+    url.hash = ""
+    location.href = url.href
+  }
+
   if (url.search.startsWith("?token=")) {
     let parsed = JSON.parse(atob(url.search.substring(7)));
     ow = new OpenWhisk(

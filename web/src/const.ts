@@ -5,6 +5,7 @@ let namespace = "nimbots";
 
 if(location.hostname == "localhost") {
     redirect = "true&port=5000";
+    //redirect="https%3A%2F%2Fnimbots-apigcp.nimbella.io%2F";
     namespace = "githubsc-x98gwr9ujwl"
 }
 
