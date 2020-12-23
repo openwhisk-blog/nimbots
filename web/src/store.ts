@@ -6,4 +6,4 @@ export const source = writable("")
 
 export const submitting = writable("")
 
-export const board = writable({show: false, date: ""})
+export const board = writable({show: false, round: ""})

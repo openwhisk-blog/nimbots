@@ -1,46 +1,36 @@
 <script lang="ts">
-  import { URL_STATUS } from "./const";
-  import { onMount } from "svelte";
+  import { URL_STATUS, GROUP_SIZE } from "./const";
   import { board } from "./store";
   import { flag, nations } from "./nations";
+
+  let round = "";
 
   interface Champ {
     name: string;
     owner: string;
     flag: number;
+    top: boolean;
     score?: number;
   }
 
+  type Groups = Record<string, Champ[]>;
+
   interface Match {
-    id: string;
-    round: number;
-    outcome?: number;
-    owner0: string;
-    bot0: string;
     flag0: number;
-    owner1: string;
-    bot1: string;
+    owner0: string;
+    name0: string;
     flag1: number;
+    owner1: string;
+    name1: string;
+    result: number;
   }
 
-  interface Battles {
-    battles: string[];
-    champs: Champ[];
+  function groups(): Promise<Groups> {
+    return fetch(URL_STATUS+"?size="+GROUP_SIZE).then((res) => res.json());
   }
 
-  interface Battle {
-    battle: Match[];
-    score: Champ[];
-  }
-
-  function battles(): Promise<Battles> {
-    let url = URL_STATUS;
-    return fetch(url).then((res) => res.json());
-  }
-
-  function battle(): Promise<Battle> {
-    let date = $board.date;
-    let url = URL_STATUS + "?battle=" + date;
+  function battle(): Promise<Match[]> {
+    let url = URL_STATUS + "?round=" + round+"&size="+GROUP_SIZE;
     return fetch(url).then((res) => res.json());
   }
 </script>
@@ -55,67 +45,79 @@
   <nav class="navigation">
     <section class="container">
       <div class="row">
-        <div class="column column-50">
-          {#if $board.date == ''}
-            {#await battles()}
+        <div class="column column-center column-offset">
+          {#if round == ''}
+            {#await groups()}
               <h1>Loading...</h1>
-            {:then battles}
-              <h1>Fighters</h1>
-              <table>
-                <tr>
-                  <th>Name</th>
-                  <th>Nation</th>
-                  <th>Owner</th>
-                </tr>
-                {#each battles.champs as champ}
+            {:then groups}
+              {#each Object.keys(groups).sort( ) as group}
+                <h1>Round {group}</h1>
+                <table>
                   <tr>
-                    <td><b>{champ.name.split('/')[1]}</b></td>
-                    <td>{flag[champ.flag]}{nations[champ.flag]}</td>
-                    <td>{champ.name.split('/')[0]}</td>
+                    <th>Name</th>
+                    <th>Nation</th>
+                    <th>Owner</th>
+                    <th>Score</th>
+                    <th>Passed</th>
                   </tr>
-                {/each}
-              </table>
-              {#if battles.battles.length == 0}
-                <h3>Watch here for the first grouping.</h3>
-              {:else}
-                <h1>Battles</h1>
-                <ul>
-                  {#each battles.battles as date, i}
-                    <li>
-                      <!-- svelte-ignore a11y-missing-attribute -->
-                      <a
-                        on:click={(event) => {
-                          date = battles.battles[i];
-                          console.log(date);
-                          event.preventDefault();
-                        }}>{date}</a>
-                    </li>
+                  {#each groups[group] as champ}
+                    <tr class={champ.top ? 'winner' : 'loser'}>
+                      <td>
+                        {#if champ.top}
+                          <b>{champ.name}</b>
+                        {:else}{champ.name}{/if}
+                      </td>
+                      <td>{flag[champ.flag]}{nations[champ.flag]}</td>
+                      <td>{champ.owner}</td>
+                      <td>{champ.score}</td>
+                      <td>
+                        {#if champ.top}<b>Yes</b>{:else}No{/if}
+                      </td>
+                    </tr>
                   {/each}
-                </ul>
-              {/if}
+                </table>
+                <button
+                  on:click={(event) => {
+                    round = group;
+                    console.log(round)
+                    event.preventDefault();
+                  }}>Show Battles</button>
+              {/each}
             {/await}
           {:else}
             {#await battle()}
               <h1>Loading...</h1>
-            {:then battle}
+            {:then matches}
               <h1>Battles</h1>
               <table>
-                {#each battle.battle as match}
+                <tr>
+                  <th>Left</th>
+                  <th>Right</th>
+                  <th>Result</th>
+                </tr>
+                {#each matches as match}
                   <tr>
-                    <td>{match.round}</td>
-                    <td>{match.flag0} {match.bot0}</td>
-                    <td>{match.flag1} {match.bot1}</td>
-                    <td>{match.outcome}</td>
-                  </tr>
-                {/each}
-              </table>
-              <h1>Scores</h1>
-              <table>
-                {#each battle.score as score}
-                  <tr>
-                    <td>{score.flag}</td>
-                    <td>{score.name}</td>
-                    <td>{score.score}</td>
+                    <td>
+                      {flag[match.flag0]}{match.name0}<br /><small>by
+                        {match.owner0}
+                        ({nations[match.flag0]})</small>
+                    </td>
+                    <td>
+                      {flag[match.flag1]}{match.name1}<br /><small>by
+                        {match.owner1}
+                        ({nations[match.flag1]})</small>
+                    </td>
+                    <th>
+                      {#if match.result == 0}
+                        Winner:
+                        {match.name0}
+                      {:else if match.result == 1}
+                        Winner:
+                        {match.name1}
+                      {:else if match.result == -1}
+                        Draw
+                      {:else if match.result == -2}TO DO{/if}
+                    </th>
                   </tr>
                 {/each}
               </table>
@@ -123,10 +125,14 @@
           {/if}
         </div>
       </div>
-      <button
-        on:click={(v) => {
-          board.set({ show: false, date: '' });
-        }}>Battlefield</button>
+      <div class="row">
+        <div class="column column-center column-offset">
+          <button
+            on:click={(v) => {
+              board.set({ show: false, round: '' });
+            }}>Battlefield</button>
+        </div>
+      </div>
     </section>
   </nav>
 </main>
