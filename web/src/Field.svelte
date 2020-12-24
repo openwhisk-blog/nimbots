@@ -9,9 +9,8 @@
   import { log } from "./robot";
   import { rumblePublic } from "./rumble";
   import Submit from "./Submit.svelte";
-  import Share from './Share.svelte';
+  import Share from "./Share.svelte";
   import type { Battle } from "./battle";
-
 
   export let base: string;
   export let ow: OpenWhisk;
@@ -24,7 +23,7 @@
   let ready = false;
   let speed = BattleWeb.speed;
   let debug = false;
-  let extra = ""
+  let extra = "";
 
   let enemyBot: string;
   let fighting = false;
@@ -95,10 +94,10 @@
       extra = "";
     } else if (winner == 0) {
       image = "won";
-      extra = "Great Achievement! Share it with your friends!"
+      extra = "Great Achievement! Share it with your friends!";
     } else {
       image = "lose";
-      extra = ""
+      extra = "";
     }
     status = "Select Opponents";
     ready = false;
@@ -291,13 +290,19 @@
         </div>
       </div>
       {#if ow === undefined}
-        <h4>
-          Welcome to
-          <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
-          v{VERSION}. Please sign up and login to Nimbella to create and edit
-          your starfighters.<br />
-        </h4>
-        <Share/>
+        <div class="row">
+          <div class="column column-center column-offset">
+            <h4>
+              Welcome to
+              <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
+              v{VERSION}. Please sign up and login to Nimbella to create and
+              edit your starfighters.<br />
+            </h4>
+            <Share
+              message="FAAS WARS: Code your fighter, learn serverless and win cash prize."
+              url="https://faaswars.nimbella.com" />
+          </div>
+        </div>
       {:else}
         <div class="row">
           <div class="column column-left column-offset">

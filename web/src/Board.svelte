@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { URL_STATUS, GROUP_SIZE } from "./const";
+  import { URL_STATUS } from "./const";
   import { board } from "./store";
   import { flag, nations } from "./nations";
+  import Share from "./Share.svelte";
 
   let round = "";
 
@@ -26,12 +27,16 @@
   }
 
   function groups(): Promise<Groups> {
-    return fetch(URL_STATUS+"?size="+GROUP_SIZE).then((res) => res.json());
+    return fetch(URL_STATUS).then((res) => res.json());
   }
 
   function battle(): Promise<Match[]> {
-    let url = URL_STATUS + "?round=" + round+"&size="+GROUP_SIZE;
+    let url = URL_STATUS + "?round=" + round;
     return fetch(url).then((res) => res.json());
+  }
+
+  function sortByKeyReverse(groups) {
+    return Object.keys(groups).sort((a, b) => parseInt(b) - parseInt(a));
   }
 </script>
 
@@ -50,7 +55,28 @@
             {#await groups()}
               <h1>Loading...</h1>
             {:then groups}
-              {#each Object.keys(groups).sort( ) as group}
+              <h1>Rules</h1>
+              <li>
+                Your fighter must win a round with a score &gt; 0 to get to the
+                final round.
+              </li>
+              <li>
+                Battles are run daily so you may need to wait one day to see
+                your score.
+              </li>
+              <li>
+                The result of a round is temporary until the round is complete
+                with 10 figther partecipants (except the last one, where they
+                can be less than 10).
+              </li>
+              <li>
+                If you lose a round you can submit another fighter, up to 5.
+              </li>
+              <button
+                on:click={(v) => {
+                  board.set({ show: false, round: '' });
+                }}>Battlefield</button>
+              {#each sortByKeyReverse(groups) as group}
                 <h1>Round {group}</h1>
                 <table>
                   <tr>
@@ -58,10 +84,10 @@
                     <th>Nation</th>
                     <th>Owner</th>
                     <th>Score</th>
-                    <th>Passed</th>
+                    <th>Top</th>
                   </tr>
                   {#each groups[group] as champ}
-                    <tr class={champ.top ? 'winner' : 'loser'}>
+                    <tr>
                       <td>
                         {#if champ.top}
                           <b>{champ.name}</b>
@@ -74,12 +100,21 @@
                         {#if champ.top}<b>Yes</b>{:else}No{/if}
                       </td>
                     </tr>
+                    {#if champ.top}
+                      <tr>
+                        <td colspan="6">
+                          <Share
+                            message="My fighter {champ.name} is Top Fighter on FAAS WARS!"
+                            url="https://faaswars.nimbella.com" />
+                        </td>
+                      </tr>
+                    {/if}
                   {/each}
                 </table>
                 <button
                   on:click={(event) => {
                     round = group;
-                    console.log(round)
+                    console.log(round);
                     event.preventDefault();
                   }}>Show Battles</button>
               {/each}
@@ -88,49 +123,56 @@
             {#await battle()}
               <h1>Loading...</h1>
             {:then matches}
-              <h1>Battles</h1>
-              <table>
-                <tr>
-                  <th>Left</th>
-                  <th>Right</th>
-                  <th>Result</th>
-                </tr>
-                {#each matches as match}
+              <h1>Results of Round {round}</h1>
+              {#if matches.length == 0}
+                <p>
+                  No matches yet. Battles are run daily. Check later if you do
+                  not see yor fighter.
+                </p>
+              {:else}
+                <table>
                   <tr>
-                    <td>
-                      {flag[match.flag0]}{match.name0}<br /><small>by
-                        {match.owner0}
-                        ({nations[match.flag0]})</small>
-                    </td>
-                    <td>
-                      {flag[match.flag1]}{match.name1}<br /><small>by
-                        {match.owner1}
-                        ({nations[match.flag1]})</small>
-                    </td>
-                    <th>
-                      {#if match.result == 0}
-                        Winner:
-                        {match.name0}
-                      {:else if match.result == 1}
-                        Winner:
-                        {match.name1}
-                      {:else if match.result == -1}
-                        Draw
-                      {:else if match.result == -2}TO DO{/if}
-                    </th>
+                    <th>Left</th>
+                    <th>Right</th>
+                    <th>Result</th>
                   </tr>
-                {/each}
-              </table>
+                  {#each matches as match}
+                    <tr>
+                      <td>
+                        {flag[match.flag0]}{match.name0}<br /><small>by
+                          {match.owner0}
+                          ({nations[match.flag0]})</small>
+                      </td>
+                      <td>
+                        {flag[match.flag1]}{match.name1}<br /><small>by
+                          {match.owner1}
+                          ({nations[match.flag1]})</small>
+                      </td>
+                      <th>
+                        {#if match.result == 0}
+                          Winner:
+                          {match.name0}
+                        {:else if match.result == 1}
+                          Winner:
+                          {match.name1}
+                        {:else if match.result == -1}
+                          Draw
+                        {:else if match.result == -2}TO DO{/if}
+                      </th>
+                    </tr>
+                  {/each}
+                </table>
+              {/if}
             {/await}
+            <div class="row">
+              <div class="column column-center column-offset">
+                <button
+                  on:click={(v) => {
+                    board.set({ show: false, round: '' });
+                  }}>Back to Battlefield</button>
+              </div>
+            </div>
           {/if}
-        </div>
-      </div>
-      <div class="row">
-        <div class="column column-center column-offset">
-          <button
-            on:click={(v) => {
-              board.set({ show: false, round: '' });
-            }}>Battlefield</button>
         </div>
       </div>
     </section>
