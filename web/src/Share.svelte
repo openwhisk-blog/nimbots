@@ -135,17 +135,6 @@
     border-color: #5e5e5e;
   }
 
-  .resp-sharing-button--pinterest {
-    background-color: #bd081c;
-    border-color: #bd081c;
-  }
-
-  .resp-sharing-button--pinterest:hover,
-  .resp-sharing-button--pinterest:active {
-    background-color: #8c0615;
-    border-color: #8c0615;
-  }
-
   .resp-sharing-button--linkedin {
     background-color: #0077b5;
     border-color: #0077b5;
