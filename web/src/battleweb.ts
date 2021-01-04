@@ -96,7 +96,6 @@ export class BattleWeb extends Battle {
             let text = `${robot.hp}/${HP}`
             // check yelling
             if (robot.is_yell && (robot.yell_ts < YELL_TIMEOUT)) {
-                this.ctx.fillStyle = "#FFFFFF";
                 this.ctx.font = "18px Verdana"
                 text = robot.yell_msg
                 robot.yell_ts++
@@ -104,6 +103,7 @@ export class BattleWeb extends Battle {
                 robot.yell_ts = 0
                 robot.is_yell = false
             }
+            this.ctx.fillStyle = "#FFFFFF";
             this.ctx.fillText(text, textX, textY)
 
             this.ctx.rotate(degrees2radians(robot.tank_angle))

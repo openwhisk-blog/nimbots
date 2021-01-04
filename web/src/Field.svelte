@@ -25,17 +25,20 @@
   let debug = false;
   let extra = "";
 
+  let myBot: string;
   let enemyBot: string;
+
   let fighting = false;
   let editing = false;
 
-  let myBot: string = "JsBot";
   let robotName = "";
   let robotType = "js";
 
   let myBots: string[] = [];
 
   let enemyBots: { name: string; url: string }[] = [];
+  let cyanBots = enemyBots;
+  let redBots = enemyBots;
 
   let robotMap = {
     js: "/src/JsBot.js",
@@ -72,11 +75,18 @@
   }
 
   async function updateBots() {
+    enemyBots = await rumblePublic();
+    cyanBots = Object.assign([], enemyBots);
+    cyanBots.sort(() => 0.5 - Math.random());
+    redBots = Object.assign([], enemyBots);
+    redBots.sort(() => 0.5 - Math.random());
     if (ow !== undefined) {
       myBots = await ow.list();
       if (myBots.length > 0) myBot = myBots[0];
+    } else {
+      myBot = cyanBots[0].url;
     }
-    enemyBots = await rumblePublic();
+    enemyBot = redBots[0].url;
   }
 
   let unsubscribeSource = source.subscribe((value) => {
@@ -154,9 +164,13 @@
   });
 
   function selected() {
-    let myBase =
-      base + (myBots.length == 0 ? "nimbots" : ow.namespace) + "/default/";
-    let urls = [myBase + myBot.split(".")[0], base + enemyBot];
+    let champ =
+      myBots.length == 0
+        ? myBot
+        : ow.namespace + "/default/" + myBot.split(".")[0];
+
+    let urls = [base + champ, base + enemyBot];
+
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
 
@@ -224,42 +238,27 @@
             href="-"
             on:click={(event) => {
               console.log('click');
-              board.set({ show: true, date: '' });
+              board.set({ show: true, round: '' });
               event.preventDefault();
             }}>Leaderboard</a>
         </h3>
       </div>
       <div class="row">
         <div class="column column-left column-offset">
-          <label for="enemy">Enemy Robot</label>
+          <label for="enemy">Red Fighter</label>
           <select bind:value={enemyBot} id="enemy">
-            <option value="nimbots/default/Terminator">
-              sample/Terminator
-            </option>
-            <option value="nimbots/default/LookAndShot">
-              sample/LookAndShot
-            </option>
-            <option value="nimbots/default/RandomTurn">
-              sample/RandomTurn
-            </option>
-            <option value="nimbots/default/BackAndForth">
-              sample/BackAndForth
-            </option>
-            <option value="nimbots/default/LookAround">
-              sample/LookAround
-            </option>
-            {#each enemyBots as enemy}
+            {#each redBots as enemy}
               <option value={enemy.url}>{enemy.name}</option>
             {/each}
           </select>
         </div>
         <div class="column column-right">
-          <label for="mybot">Champ Fighter</label>
+          <label for="mybot">Cyan Fighter</label>
           <select bind:value={myBot} id="enemy">
             {#if myBots.length == 0}
-              <option value="JsBot">Sample Javascript Fighter</option>
-              <option value="PyBot">Sample Python Fighter</option>
-              <option value="GoBot">Sample Go Fighter</option>
+              {#each cyanBots as enemy}
+                <option value={enemy.url}>{enemy.name}</option>
+              {/each}
             {:else}
               {#each myBots as bot}
                 <option value={bot}>{bot.split('.')[0]}</option>
@@ -320,6 +319,7 @@
           <div class="column column-left column-offset">
             <button
               id="submit"
+              disabled={myBots.length == 0}
               on:click={() => {
                 submitting.set(myBot);
               }}>Submit to FAAS WARS</button>
@@ -342,7 +342,7 @@
       <div class="row">
         <h4>
           Champ:
-          <span id="cyan">{battle.robotName(0)}</span>
+          <span id="cyan">{battle.robotName(0)}</span><br>
           Enemy:
           <span id="red">{battle.robotName(1)}</span>
         </h4>

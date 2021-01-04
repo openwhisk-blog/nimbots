@@ -10,7 +10,7 @@ if(location.hostname == "localhost") {
     debug=true
 }
 
-export const VERSION = "0.99"
+export const VERSION = "1.0"
 export const URL_LOGIN = `https://apigcp.nimbella.io/api/v1/web/nimbella/user/login?provider=&redirect=${redirect}`
 export const URL_REGISTER = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/register`
 export const URL_SUBMIT = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/submit`

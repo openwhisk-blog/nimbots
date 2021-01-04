@@ -130,11 +130,20 @@
                   not see yor fighter.
                 </p>
               {:else}
+                <p />
                 <table>
+                  <tr>
+                    <td colspan="4">
+                      <b>NOTE!</b>
+                      Fighting again can give different results!<br>
+                      Initial positions are random and can be different!
+                    </td>
+                  </tr>
                   <tr>
                     <th>Left</th>
                     <th>Right</th>
                     <th>Result</th>
+                    <th>Fight Again!</th>
                   </tr>
                   {#each matches as match}
                     <tr>
@@ -159,6 +168,7 @@
                           Draw
                         {:else if match.result == -2}TO DO{/if}
                       </th>
+                      <td><button>Fight!</button></td>
                     </tr>
                   {/each}
                 </table>
