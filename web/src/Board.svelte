@@ -123,7 +123,7 @@
             {#await battle()}
               <h1>Loading...</h1>
             {:then matches}
-              <h1>Results of Round {round}</h1>
+              <h1>Results of<br>Round {round}</h1>
               {#if matches.length == 0}
                 <p>
                   No matches yet. Battles are run daily. Check later if you do
@@ -132,6 +132,7 @@
               {:else}
                 <p />
                 <table>
+                  <!--
                   <tr>
                     <td colspan="4">
                       <b>NOTE!</b>
@@ -139,11 +140,12 @@
                       Initial positions are random and can be different!
                     </td>
                   </tr>
+                  -->
                   <tr>
                     <th>Left</th>
                     <th>Right</th>
                     <th>Result</th>
-                    <th>Fight Again!</th>
+                    <!-- th>Fight Again!</th-->
                   </tr>
                   {#each matches as match}
                     <tr>
@@ -168,7 +170,7 @@
                           Draw
                         {:else if match.result == -2}TO DO{/if}
                       </th>
-                      <td><button>Fight!</button></td>
+                      <!-- td><button on:click={refight}>Fight!</button></td -->
                     </tr>
                   {/each}
                 </table>

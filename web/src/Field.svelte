@@ -94,6 +94,7 @@
     updateBots();
   });
 
+  
   function finish(winner: number) {
     msg = "Game over";
     if (winner == -2) {
@@ -170,7 +171,7 @@
         : ow.namespace + "/default/" + myBot.split(".")[0];
 
     let urls = [base + champ, base + enemyBot];
-
+  
     console.log(urls);
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
 
