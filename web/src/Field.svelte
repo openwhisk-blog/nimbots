@@ -246,7 +246,7 @@
       </div>
       <div class="row">
         <div class="column column-left column-offset">
-          <label for="enemy">Red Fighter</label>
+          <label for="enemy">Red Fighter (Enemy)</label>
           <select bind:value={enemyBot} id="enemy">
             {#each redBots as enemy}
               <option value={enemy.url}>{enemy.name}</option>
@@ -254,7 +254,7 @@
           </select>
         </div>
         <div class="column column-right">
-          <label for="mybot">Cyan Fighter</label>
+          <label for="mybot">Cyan Fighter (You)</label>
           <select bind:value={myBot} id="enemy">
             {#if myBots.length == 0}
               {#each cyanBots as enemy}
@@ -342,7 +342,7 @@
       </div>
       <div class="row">
         <h4>
-          Champ:
+          You:
           <span id="cyan">{battle.robotName(0)}</span><br>
           Enemy:
           <span id="red">{battle.robotName(1)}</span>
