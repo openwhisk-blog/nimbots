@@ -1,5 +1,5 @@
 import fetch from 'cross-fetch'
-import { URL_REGISTER, URL_SUBMIT, URL_PUBLIC } from './const'
+import { URL_REGISTER, URL_SUBMIT, URL_PUBLIC, URL_WINNERS } from './const'
 
 export function rumbleSave(name: string, code: string): Promise<string> {
     let data = {
@@ -41,5 +41,13 @@ interface Enemy {
 export async function rumblePublic(): Promise<Enemy[]> {
     return fetch(URL_PUBLIC)
         .then((resp) => resp.json())
+        .catch((err) => [])
+}
+
+export async function rumbleWinners(): Promise<Enemy[]> {
+    return fetch(URL_WINNERS)
+        .then((resp) => {
+            return resp.json()
+        })
         .catch((err) => [])
 }

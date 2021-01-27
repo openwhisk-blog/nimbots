@@ -16,6 +16,7 @@ export const URL_REGISTER = `https://apigcp.nimbella.io/api/v1/web/${namespace}/
 export const URL_SUBMIT = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/submit`
 export const URL_PUBLIC = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/public`
 export const URL_STATUS = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/status`
+export const URL_WINNERS = `https://apigcp.nimbella.io/api/v1/web/${namespace}/rumble/status?top=1`
 export const DEBUG = debug;
 
 if(DEBUG) {

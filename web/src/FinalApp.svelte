@@ -3,9 +3,8 @@
   import "milligram/dist/milligram.min.css";
   import "./style.css";
 
-  import Field from "./Field.svelte";
-  import Editor from "./Editor.svelte";
-  import Board from "./Board.svelte";
+  import FinalField from "./FinalField.svelte";
+  import FinalBoard from "./FinalBoard.svelte";
 
   import { source, board } from "./store";
   import { OpenWhisk } from "./openwhisk";
@@ -40,9 +39,7 @@
 </script>
 
 {#if $board.show}
-  <Board/>
-{:else if $source == ''}
-  <Field {base} {ow} />
+  <FinalBoard/>
 {:else}
-  <Editor {ow} />
+  <FinalField {base} {ow} />
 {/if}
