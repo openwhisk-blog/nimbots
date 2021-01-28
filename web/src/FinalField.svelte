@@ -1,127 +1,27 @@
 <script lang="ts">
-  import fetch from "cross-fetch";
   import type { OpenWhisk } from "./openwhisk";
-  import { URL_LOGIN, VERSION } from "./const";
   import { BattleWeb } from "./battleweb";
   import { AssetsLoader } from "./util";
-  import { onMount, afterUpdate, onDestroy } from "svelte";
-  import { inspector, source, submitting, board } from "./store";
-  import { log } from "./robot";
-  import { rumblePublic, rumbleWinners } from "./rumble";
-  import Submit from "./Submit.svelte";
-  import Share from "./Share.svelte";
+  import { onMount, afterUpdate } from "svelte";
+  import { inspector } from "./store";
+  import { rumbleWinners } from "./rumble";
   import type { Battle } from "./battle";
+  import { flag } from "./nations";
 
   export let base: string;
   export let ow: OpenWhisk;
 
   let battle: BattleWeb;
-  let msg = ow === undefined ? "final competition" : "Choose opponents";
+  let msg = ow === undefined ? "final round" : "Choose opponents";
   let status = "Select Opponents";
 
   let ready = false;
-  let debug = false;
-  let extra = "";
 
   let myBot: string;
   let enemyBot: string;
 
   let fighting = false;
   let editing = false;
-
-  let robotName = "";
-  let robotType = "js";
-
-  let myBots: string[] = [];
-
-  let enemyBots: { name: string; url: string }[] = [];
-  let cyanBots = enemyBots;
-  let redBots = enemyBots;
-
-  let robotMap = {
-    js: "/src/JsBot.js",
-    go: "/src/GoBot.go",
-    py: "/src/PyBot.py",
-  };
-  let regex = /^\w{1,60}$/g;
-
-  async function create(): Promise<boolean> {
-    if (!robotName.match(regex)) {
-      alert("Invalid Robot Name");
-      return false;
-    }
-    let bot: string;
-    return fetch(robotMap[robotType])
-      .then((data) => {
-        if (data.ok) return data.text();
-        throw data.statusText;
-      })
-      .then((code) => {
-        bot = robotName + "." + robotType;
-        return ow.save(bot, code, false);
-      })
-      .then(async (result) => {
-        console.log(result);
-        if ("error" in result) throw result["error"];
-        source.set(bot);
-        return true;
-      })
-      .catch((err) => {
-        alert(err);
-        return false;
-      });
-  }
-
-  async function updateBots() {
-    enemyBots = await rumblePublic();
-    cyanBots = Object.assign([], enemyBots);
-    cyanBots.sort(() => 0.5 - Math.random());
-    redBots = Object.assign([], enemyBots);
-    redBots.sort(() => 0.5 - Math.random());
-    if (ow !== undefined) {
-      myBots = await ow.list();
-      if (myBots.length > 0) myBot = myBots[0];
-    } else {
-      myBot = cyanBots[0].url;
-    }
-    enemyBot = redBots[0].url;
-  }
-
-  let unsubscribeSource = source.subscribe((value) => {
-    editing = value != "";
-    updateBots();
-  });
-
-  function finish(winner: number) {
-    msg = "Game over";
-    if (winner == -2) {
-      image = "ready";
-      extra = "";
-    } else if (winner == -1) {
-      image = "draw";
-      extra = "";
-    } else if (winner == 0) {
-      image = "won";
-      extra = "Great Achievement! Share it with your friends!";
-    } else {
-      image = "lose";
-      extra = "";
-    }
-    status = "Select Opponents";
-    ready = false;
-    fighting = false;
-    battle.stop();
-    inspector.set([
-      { n: 0, req: "", res: "", state: "" },
-      { n: 0, req: "", res: "", state: "" },
-    ]);
-  }
-
-  function trace() {
-    status = "Tracing...";
-    fighting = false;
-    msg = battle.trace();
-  }
 
   function suspended(msg: string, state0: string, state1: string) {
     status = msg;
@@ -131,13 +31,6 @@
       info[1].state = state1;
       return info;
     });
-  }
-
-  function edit() {
-    console.log(myBot);
-    source.set(myBot);
-    battle.stop();
-    editing = true;
   }
 
   let image = ow === undefined ? "splash" : "ready";
@@ -161,18 +54,11 @@
     if (!(editing || ready)) splash();
   });
 
-  function selected() {
-    let champBot =
-      myBots.length == 0
-        ? myBot
-        : ow.namespace + "/default/" + myBot.split(".")[0];
-    fight(champBot, enemyBot);
-  }
+  function fight(champName, champUrl, enemyName, enemyUrl) {
+    myBot = champName;
+    enemyBot = enemyName;
 
-  function fight(champ, enemy) {
-    let urls = [base + champ, base + enemy];
-
-    console.log(urls);
+    let urls = [base + champUrl, base + enemyUrl];
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
 
     let startAngles = [
@@ -182,9 +68,10 @@
 
     battle.webinit(canvas.getContext("2d"), urls, startAngles);
     ready = true;
-    msg = "Starfighters in position!";
+    msg = "FAASfighters in position!";
     status = "Ready to fight.";
     battle.draw();
+    toggle()
   }
 
   function toggle() {
@@ -198,33 +85,6 @@
     }
   }
 
-  let seed = 123456789;
-  let seed_a = 1103515245;
-  let seed_c = 12345;
-  let seed_max = 1024;
-
-  function rand() {
-    seed = (seed_a * seed + seed_c) % seed_max;
-    return seed / seed_max;
-  }
-
-  async function loadWinners() {
-    let battles = [];
-    let data = await rumbleWinners();
-    for (let i of data) {
-      console.log(i);
-      for (let j of data) {
-        if (i !== j) {
-          battles.push([i, j]);
-        }
-      }
-    }
-
-    seed = 123456;
-    battles.sort(() => rand() - 0.5);
-    return battles;
-  }
-
   onMount(() => {
     let canvas = document.getElementById("arena") as HTMLCanvasElement;
     battle = new BattleWeb(
@@ -234,147 +94,146 @@
       suspended
     );
     Images.loadAll(() => splash());
+    prepare();
   });
-  onDestroy(unsubscribeSource);
+
+  // ------
+
+  let ranking = [];
+  let battles = [];
+  let completed = {};
+
+  function save() {
+    localStorage.setItem("ranking", JSON.stringify(ranking));
+    localStorage.setItem("battles", JSON.stringify(battles));
+    localStorage.setItem("completed", JSON.stringify(completed));
+  }
+
+  window["clean"] = function () {
+    localStorage.removeItem("ranking");
+    localStorage.removeItem("battles");
+    localStorage.removeItem("completed");
+  };
+
+  async function prepare() {
+    let t = localStorage.getItem("ranking");
+    if (t) {
+      ranking = JSON.parse(t);
+    } else {
+      ranking = await rumbleWinners();
+      for (let i in ranking) {
+        ranking[i].score = 0;
+      }
+    }
+
+    t = localStorage.getItem("battles");
+    if (t) {
+      battles = JSON.parse(t);
+      completed = JSON.parse(localStorage.getItem("completed"));
+    } else {
+      battles = [];
+      for (let i of ranking) {
+        for (let j of ranking) {
+          if (i !== j) {
+            battles.push([i, j]);
+          }
+        }
+      }
+      battles.sort(() => Math.random() - 0.5);
+      completed = {};
+    }
+    save();
+  }
+
+  function updateScore(winner, incr) {
+    for (let i in ranking) {
+      if (ranking[i].name == winner) {
+        ranking[i].score += incr;
+      }
+    }
+    ranking.sort((a, b) => b.score - a.score);
+    console.log(ranking);
+  }
+
+  function finish(winner: number) {
+    msg = "Game over";
+    image = "ready";
+    if (winner == -2) {
+    } else if (winner == -1) {
+      updateScore(myBot, 1);
+      updateScore(enemyBot, 1);
+      msg = "Draw! " + myBot.split("/").pop() + " " + enemyBot.split("/").pop();
+    } else if (winner == 0) {
+      updateScore(myBot, 3);
+      msg = "Winner: " + myBot.split("/").pop();
+    } else {
+      msg = "Winner: " + enemyBot.split("/").pop();
+      updateScore(enemyBot, 3);
+    }
+    status = "Select Opponents";
+    ready = false;
+    fighting = false;
+    battle.stop();
+    completed[myBot + ":" + enemyBot] = 1;
+    save();
+  }
 </script>
 
 <main class="wrapper">
   <section class="container">
     <h1>{msg}</h1>
     <div class="row"><canvas id="arena" width="500" height="500" /></div>
-    {#if $submitting != ""}
-      <Submit {ow} />
-    {:else if !ready}
+
+    {#if !ready}
       <div class="row">
-        <h3>
-          <a
-            href="-"
-            on:click={(event) => {
-              console.log("click");
-              board.set({ show: true, round: "" });
-              event.preventDefault();
-            }}>Leaderboard</a
-          >
-        </h3>
+        <div class="column column-center column-offset">
+          <h1>Ranking</h1>
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Score</th>
+            </tr>
+            {#each ranking as champ}
+              <tr>
+                <td>
+                  {flag[champ.flag]}
+                  {#if champ.top}
+                    <b>{champ.name}</b>
+                  {:else}{champ.name}{/if}
+                </td>
+                <td>{champ.score}</td>
+              </tr>
+            {/each}
+          </table>
+        </div>
       </div>
 
       <div class="row">
         <div class="column column-center column-offset">
-          <h1>Final</h1>
-          {#await loadWinners() then battles}
-            <table>
-              {#each battles as battle}
+          <h1>Battles</h1>
+          <table>
+            {#each battles as battle}
+              {#if !completed[battle[0].name + ":" + battle[1].name]}
                 <tr>
                   <td>{battle[0].name}</td>
                   <td>{battle[1].name}</td>
-                  <td
-                    ><button
-                      on:click={() => fight(battle[0].url, battle[1].url)}
-                      >Fight</button
-                    ></td
-                  >
+                  <td>
+                    <button
+                      on:click={() =>
+                        fight(
+                          battle[0].name,
+                          battle[0].url,
+                          battle[1].name,
+                          battle[1].url
+                        )}>Fight</button
+                    >
+                  </td>
                 </tr>
-              {/each}
-            </table>
-          {/await}
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="column column-left column-offset">
-          <label for="enemy">Red Fighter (Enemy)</label>
-          <select bind:value={enemyBot} id="enemy">
-            {#each redBots as enemy}
-              <option value={enemy.url}>{enemy.name}</option>
+              {/if}
             {/each}
-          </select>
-        </div>
-        <div class="column column-right">
-          <label for="mybot">Cyan Fighter (You)</label>
-          <select bind:value={myBot} id="enemy">
-            {#if myBots.length == 0}
-              {#each cyanBots as enemy}
-                <option value={enemy.url}>{enemy.name}</option>
-              {/each}
-            {:else}
-              {#each myBots as bot}
-                <option value={bot}>{bot.split(".")[0]}</option>
-              {/each}
-            {/if}
-          </select>
+          </table>
         </div>
       </div>
-      <div class="row">
-        <div class="column column-left column-offset">
-          <button id="done" on:click={selected}>Start the Battle</button>
-        </div>
-        <div class="column column-right">
-          {#if ow === undefined}
-            <button
-              id="login"
-              on:click={() => {
-                location.href = URL_LOGIN;
-              }}>Login to Nimbella</button
-            >
-          {:else}
-            <div class="column column-right">
-              <button id="edit" on:click={edit} disabled={myBots.length == 0}
-                >Edit my Fighter</button
-              >
-            </div>
-          {/if}
-        </div>
-      </div>
-      {#if ow === undefined}
-        <div class="row">
-          <div class="column column-center column-offset">
-            <h4>
-              Welcome to
-              <b><a href="https://faaswars.nimbella.com">FAAS Wars</a></b>
-              v{VERSION}. Please sign up and login to Nimbella to create and
-              edit your starfighters.<br />
-            </h4>
-            <Share
-              message="FAAS WARS: Code your fighter, learn serverless and win cash prize."
-              url="https://faaswars.nimbella.com"
-            />
-          </div>
-        </div>
-      {:else}
-        <div class="row">
-          <div class="column column-left column-offset">
-            <button id="create" on:click={create}>Create New Fighter</button>
-          </div>
-          <div class="column column-right">
-            <input
-              type="text"
-              bind:value={robotName}
-              placeholder="robot name"
-              id="botname"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="column column-left column-offset">
-            <button
-              id="submit"
-              disabled={myBots.length == 0}
-              on:click={() => {
-                submitting.set(myBot);
-              }}>Submit to FAAS WARS</button
-            >
-          </div>
-          <div class="column column-right">
-            <select bind:value={robotType}>
-              <option value="js">JavaScript</option>
-              <option value="py">Python</option>
-              <option value="go">Golang</option>
-            </select>
-          </div>
-        </div>
-        <h4>{extra}</h4>
-        <Share />
-      {/if}
     {:else}
       <div class="row">
         <h3>{status}</h3>
@@ -394,66 +253,27 @@
             {#if fighting}Suspend{:else}Fight!{/if}
           </button>
           <br />
+          <br />
+        </div>
+        <div class="column column-right">
+          <br />
           <button
             on:click={() => {
               ready = false;
               fighting = false;
               battle.terminate();
             }}>Stop</button
-          ><br />
-          <button id="edit" on:click={edit} disabled={myBots.length == 0}
-            >Edit</button
           >
-        </div>
-        <div class="column column-right">
-          <br />
-          <label>
-            <input type="checkbox" bind:checked={debug} />
-            Debug<br />
-            <a
-              href="https://apigcp.nimbella.io/wb/?command=activation+list"
-              target="workbench">Logs</a
-            >
-          </label><br />
+          <button
+          on:click={() => {
+            ready = false;
+            fighting = false;
+            battle.terminate();
+            finish(-1)
+          }}>Draw</button
+        >
         </div>
       </div>
-      {#if debug}
-        <div class="row">
-          <div class="column column-left column-offset">
-            <button id="step" on:click={trace}>Trace</button>
-          </div>
-          <div class="column column-right">
-            Trace:&nbsp;
-            <label>
-              <input type="checkbox" bind:checked={log.eventOn} />
-              Events&nbsp;
-            </label>
-            <label>
-              <input type="checkbox" bind:checked={log.requestOn} />
-              Requests&nbsp;
-            </label>
-            <label>
-              <input type="checkbox" bind:checked={log.actionOn} />
-              Actions&nbsp;
-            </label>
-            (open console)
-          </div>
-        </div>
-        <div class="row">
-          <div class="column column-50 column-offset">
-            <b>[Me] {$inspector[0].state}</b><br />
-            Request/<b>Response</b>
-            #{$inspector[0].n}
-            <pre>{$inspector[0].req}<br /><b>{$inspector[0].res}</b>
-              </pre>
-            <b>[Emeny] {$inspector[1].state}</b><br />
-            Request/<b>Response</b>
-            #{$inspector[1].n}
-            <pre>{$inspector[1].req}<br /><b>{$inspector[1].res}</b>
-              </pre>
-          </div>
-        </div>
-      {/if}
     {/if}
   </section>
 </main>

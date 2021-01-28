@@ -4,7 +4,6 @@
   import "./style.css";
 
   import FinalField from "./FinalField.svelte";
-  import FinalBoard from "./FinalBoard.svelte";
 
   import { source, board } from "./store";
   import { OpenWhisk } from "./openwhisk";
@@ -13,11 +12,11 @@
   let url = new URL(location.href);
   let ow: OpenWhisk = undefined;
 
-  if(url.hash.length >1) {
-    console.log(url.hash)
-    localStorage.setItem("referrer", url.hash.substring(1))
-    url.hash = ""
-    location.href = url.href
+  if (url.hash.length > 1) {
+    console.log(url.hash);
+    localStorage.setItem("referrer", url.hash.substring(1));
+    url.hash = "";
+    location.href = url.href;
   }
 
   if (url.search.startsWith("?token=")) {
@@ -30,16 +29,11 @@
     window["ow"] = ow;
     console.log("logged on", ow.namespace);
   }
-  
+
   // calculate api server location
   let apiserver = "apigcp.nimbella.io";
   let path = "/api/v1/web/";
   let base = "https://" + apiserver + path;
-
 </script>
 
-{#if $board.show}
-  <FinalBoard/>
-{:else}
-  <FinalField {base} {ow} />
-{/if}
+<FinalField {base} {ow} />
