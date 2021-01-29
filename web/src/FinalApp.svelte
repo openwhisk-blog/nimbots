@@ -4,8 +4,6 @@
   import "./style.css";
 
   import FinalField from "./FinalField.svelte";
-
-  import { source, board } from "./store";
   import { OpenWhisk } from "./openwhisk";
 
   // decode login

@@ -7,6 +7,7 @@
   import { rumbleWinners } from "./rumble";
   import type { Battle } from "./battle";
   import { flag } from "./nations";
+  import { bergerTable } from "./berger";
 
   export let base: string;
   export let ow: OpenWhisk;
@@ -16,12 +17,7 @@
   let status = "Select Opponents";
 
   let ready = false;
-
-  let myBot: string;
-  let enemyBot: string;
-
   let fighting = false;
-  let editing = false;
 
   function suspended(msg: string, state0: string, state1: string) {
     status = msg;
@@ -51,8 +47,12 @@
   }
 
   afterUpdate(() => {
-    if (!(editing || ready)) splash();
+    if (!ready) splash();
   });
+
+
+  let myBot 
+  let enemyBot
 
   function fight(champName, champUrl, enemyName, enemyUrl) {
     myBot = champName;
@@ -71,7 +71,7 @@
     msg = "FAASfighters in position!";
     status = "Ready to fight.";
     battle.draw();
-    toggle()
+    toggle();
   }
 
   function toggle() {
@@ -102,6 +102,8 @@
   let ranking = [];
   let battles = [];
   let completed = {};
+  let bot0 = "0";
+  let bot1 = "0";
 
   function save() {
     localStorage.setItem("ranking", JSON.stringify(ranking));
@@ -109,10 +111,11 @@
     localStorage.setItem("completed", JSON.stringify(completed));
   }
 
-  window["clean"] = function () {
+  window["reset"] = function () {
     localStorage.removeItem("ranking");
     localStorage.removeItem("battles");
     localStorage.removeItem("completed");
+    prepare();
   };
 
   async function prepare() {
@@ -121,9 +124,14 @@
       ranking = JSON.parse(t);
     } else {
       ranking = await rumbleWinners();
+      ranking.sort((a, b) => a.name.localeCompare(b.name));
+      let n = 0;
       for (let i in ranking) {
+        //ranking[i].name = String.fromCharCode("a".charCodeAt(0)+n)
+        //n++
         ranking[i].score = 0;
       }
+      console.log(ranking);
     }
 
     t = localStorage.getItem("battles");
@@ -132,14 +140,13 @@
       completed = JSON.parse(localStorage.getItem("completed"));
     } else {
       battles = [];
-      for (let i of ranking) {
-        for (let j of ranking) {
-          if (i !== j) {
-            battles.push([i, j]);
-          }
+      let table = bergerTable(ranking) as object[][];
+      console.log(table);
+      for (let round of table) {
+        for (let game of round) {
+          battles.push([game["teamA"], game["teamB"]]);
         }
       }
-      battles.sort(() => Math.random() - 0.5);
       completed = {};
     }
     save();
@@ -212,9 +219,10 @@
         <div class="column column-center column-offset">
           <h1>Battles</h1>
           <table>
-            {#each battles as battle}
+            {#each battles as battle, i}
               {#if !completed[battle[0].name + ":" + battle[1].name]}
                 <tr>
+                  <td><b>{i + 1}</b></td>
                   <td>{battle[0].name}</td>
                   <td>{battle[1].name}</td>
                   <td>
@@ -231,6 +239,39 @@
                 </tr>
               {/if}
             {/each}
+            <tr>
+              <td>Playoff</td>
+              <td>
+                <select bind:value={bot0}>
+                  {#each ranking as bot, i}
+                    <option value={i}>{bot.name}</option>
+                  {/each}
+                </select>
+              </td>
+              <td>
+                <select bind:value={bot1}>
+                  {#each ranking as bot, i}
+                    <option value={i}>{bot.name}</option>
+                  {/each}
+                </select>
+              </td>
+              <td>
+                <button
+                  on:click={() => {
+                    let i = parseInt(bot0);
+                    let j = parseInt(bot1);
+                    console.log(ranking[i])
+                    console.log(ranking[j])
+                    fight(
+                      ranking[i].name,
+                      ranking[i].url,
+                      ranking[j].name,
+                      ranking[j].url
+                    );
+                  }}>Fight</button
+                >
+              </td>
+            </tr>
           </table>
         </div>
       </div>
@@ -265,13 +306,13 @@
             }}>Stop</button
           >
           <button
-          on:click={() => {
-            ready = false;
-            fighting = false;
-            battle.terminate();
-            finish(-1)
-          }}>Draw</button
-        >
+            on:click={() => {
+              ready = false;
+              fighting = false;
+              battle.terminate();
+              finish(-1);
+            }}>Draw</button
+          >
         </div>
       </div>
     {/if}
