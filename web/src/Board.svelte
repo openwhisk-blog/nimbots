@@ -5,6 +5,7 @@
   import Share from "./Share.svelte";
 
   let round = "";
+  let prefix = "feb";
 
   interface Champ {
     name: string;
@@ -40,18 +41,12 @@
   }
 </script>
 
-<style>
-  table {
-    border: 1;
-  }
-</style>
-
 <main class="wrapper">
   <nav class="navigation">
     <section class="container">
       <div class="row">
         <div class="column column-center column-offset">
-          {#if round == ''}
+          {#if round == ""}
             {#await groups()}
               <h1>Loading...</h1>
             {:then groups}
@@ -74,10 +69,11 @@
               </li>
               <button
                 on:click={(v) => {
-                  board.set({ show: false, round: '' });
-                }}>Battlefield</button>
+                  board.set({ show: false, round: "" });
+                }}>Battlefield</button
+              >
               {#each sortByKeyReverse(groups) as group}
-                <h1>Round {group}</h1>
+                <h1>Round {prefix}/{group}</h1>
                 <table>
                   <tr>
                     <th>Name</th>
@@ -105,7 +101,8 @@
                         <td colspan="6">
                           <Share
                             message="My fighter {champ.name} is Top Fighter on FAAS WARS!"
-                            url="https://faaswars.nimbella.com" />
+                            url="https://faaswars.nimbella.com"
+                          />
                         </td>
                       </tr>
                     {/if}
@@ -116,14 +113,58 @@
                     round = group;
                     console.log(round);
                     event.preventDefault();
-                  }}>Show Battles</button>
+                  }}>Show Battles</button
+                >
               {/each}
             {/await}
+            <div class="row">
+              <div class="column column-center column-offset">
+                <h1>Winners</h1>
+              </div>
+            </div>
+            <table>
+              <tr>
+                <th>Month</th>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Prize</th>
+                <th>Video</th>
+              </tr>
+              <tr>
+                <td>January</td>
+                <td><b>Cortex2</b></td>
+                <td>cortexbo</td>
+                <td><b>$200</td>
+                <td
+                  ><a href="https://www.youtube.com/watch?v=hL-4c72yFD0"
+                    >YouTube</a
+                  ></td
+                >
+              </tr>
+              <tr>
+                <td>February</td>
+                <td><b>To be assigned</b></td>
+                <td>-</td>
+                <td><b>$400</td>
+                <td
+                  >TODO</td
+                >
+              </tr>
+              <tr>
+                <td>March</td>
+                <td><b>To be assigned</b></td>
+                <td>-</td>
+                <td><b>$800</td>
+                <td
+                  >TODO</td
+                >
+              </tr>
+            </table>
           {:else}
             {#await battle()}
               <h1>Loading...</h1>
             {:then matches}
-              <h1>Results of<br>Round {round}</h1>
+              <h1>Results of<br />Round {prefix}/{round}</h1>
               {#if matches.length == 0}
                 <p>
                   No matches yet. Battles are run daily. Check later if you do
@@ -132,32 +173,26 @@
               {:else}
                 <p />
                 <table>
-                  <!--
-                  <tr>
-                    <td colspan="4">
-                      <b>NOTE!</b>
-                      Fighting again can give different results!<br>
-                      Initial positions are random and can be different!
-                    </td>
-                  </tr>
-                  -->
                   <tr>
                     <th>Left</th>
                     <th>Right</th>
                     <th>Result</th>
-                    <!-- th>Fight Again!</th-->
                   </tr>
                   {#each matches as match}
                     <tr>
                       <td>
-                        {flag[match.flag0]}{match.name0}<br /><small>by
+                        {flag[match.flag0]}{match.name0}<br /><small
+                          >by
                           {match.owner0}
-                          ({nations[match.flag0]})</small>
+                          ({nations[match.flag0]})</small
+                        >
                       </td>
                       <td>
-                        {flag[match.flag1]}{match.name1}<br /><small>by
+                        {flag[match.flag1]}{match.name1}<br /><small
+                          >by
                           {match.owner1}
-                          ({nations[match.flag1]})</small>
+                          ({nations[match.flag1]})</small
+                        >
                       </td>
                       <th>
                         {#if match.result == 0}
@@ -174,14 +209,18 @@
                     </tr>
                   {/each}
                 </table>
+                <div class="row">
+                  <div class="column column-center column-offset" />
+                </div>
               {/if}
             {/await}
             <div class="row">
               <div class="column column-center column-offset">
                 <button
                   on:click={(v) => {
-                    board.set({ show: false, round: '' });
-                  }}>Back to Battlefield</button>
+                    board.set({ show: false, round: "" });
+                  }}>Back to Battlefield</button
+                >
               </div>
             </div>
           {/if}
@@ -190,3 +229,9 @@
     </section>
   </nav>
 </main>
+
+<style>
+  table {
+    border: 1;
+  }
+</style>
