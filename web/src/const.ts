@@ -3,12 +3,12 @@ let size = 10;
 let redirect = "https%3A%2F%2Fnimbots-apigcp.nimbella.io%2F";
 let namespace = "nimbots";
 
-if(location.hostname == "localhost") {
+/*if(location.hostname == "localhost") {
     redirect = "true&port=5000";
     //redirect="https%3A%2F%2Fnimbots-apigcp.nimbella.io%2F";
     namespace = "githubsc-x98gwr9ujwl"
     debug=true
-}
+}*/
 
 export const VERSION = "1.0"
 export const URL_LOGIN = `https://apigcp.nimbella.io/api/v1/web/nimbella/user/login?provider=&redirect=${redirect}`

@@ -50,9 +50,8 @@
     if (!ready) splash();
   });
 
-
-  let myBot 
-  let enemyBot
+  let myBot;
+  let enemyBot;
 
   function fight(champName, champUrl, enemyName, enemyUrl) {
     myBot = champName;
@@ -124,6 +123,7 @@
       ranking = JSON.parse(t);
     } else {
       ranking = await rumbleWinners();
+      //ranking = ranking.slice(0, 3)
       ranking.sort((a, b) => a.name.localeCompare(b.name));
       let n = 0;
       for (let i in ranking) {
@@ -183,14 +183,40 @@
     battle.stop();
     completed[myBot + ":" + enemyBot] = 1;
     save();
+
+    if(fightAllRunning)
+      setTimeout(fightNext, 2000)
+  }
+
+  let fightAllRunning = false
+  function fightNext() {
+    for(let battle of battles) {
+      if(completed[battle[0].name + ":" + battle[1].name])
+        continue
+      fight(battle[0].name, battle[0].url, battle[1].name, battle[1].url)
+      return
+    }
+    alert("Game Over")
+    fightAllRunning = false
+  }
+
+  function fightAll() {
+    fightAllRunning = true
+    fightNext();
   }
 </script>
 
 <main class="wrapper">
   <section class="container">
     <h1>{msg}</h1>
-    <div class="row"><canvas id="arena" width="500" height="500" /></div>
-
+    <div class="row">
+      <canvas
+        style={ready ? "display:block" : "display:none"}
+        id="arena"
+        width="500"
+        height="500"
+      />
+    </div>
     {#if !ready}
       <div class="row">
         <div class="column column-center column-offset">
@@ -214,7 +240,6 @@
           </table>
         </div>
       </div>
-
       <div class="row">
         <div class="column column-center column-offset">
           <h1>Battles</h1>
@@ -260,8 +285,8 @@
                   on:click={() => {
                     let i = parseInt(bot0);
                     let j = parseInt(bot1);
-                    console.log(ranking[i])
-                    console.log(ranking[j])
+                    console.log(ranking[i]);
+                    console.log(ranking[j]);
                     fight(
                       ranking[i].name,
                       ranking[i].url,
@@ -273,6 +298,11 @@
               </td>
             </tr>
           </table>
+        </div>
+      </div>
+      <div class="row">
+        <div class="column column-center column-offset">
+          <button on:click={fightAll}>Fight All</button>
         </div>
       </div>
     {:else}
