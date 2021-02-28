@@ -143,11 +143,13 @@
               </tr>
               <tr>
                 <td>February</td>
-                <td><b>To be assigned</b></td>
-                <td>-</td>
+                <td><b>TooncesV4</b></td>
+                <td>tylerzer</td>
                 <td><b>$400</td>
                 <td
-                  >TODO</td
+                  ><a href="https://www.youtube.com/watch?v=Y-n7N7q1hOQ"
+                  >YouTube</a
+                ></td
                 >
               </tr>
               <tr>
