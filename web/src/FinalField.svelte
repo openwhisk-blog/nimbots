@@ -340,7 +340,8 @@
               ready = false;
               fighting = false;
               battle.terminate();
-              finish(-1);
+              finish(-1);   
+              fighting = true;           
             }}>Draw</button
           >
         </div>
